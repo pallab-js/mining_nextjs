@@ -88,6 +88,8 @@ export interface SeriesDef {
   format?: Fmt
 }
 
+import { useChartHeight } from '@/lib/responsive'
+
 export function TrendChart({
   data,
   xKey,
@@ -109,8 +111,8 @@ export function TrendChart({
   /** use responsive height based on viewport (default: true) */
   responsive?: boolean
 }) {
-  const { useChartHeight } = require('@/lib/responsive')
-  const responsiveHeight = responsive ? useChartHeight(height) : height
+  const chartHeight = useChartHeight(height)
+  const responsiveHeight = responsive ? chartHeight : height
   const hasRight = series.some((s) => s.axis === 'right')
   const primary = series[0]?.format
   const Chart = series.every((s) => s.kind !== 'area') ? LineChart : ComposedChart
@@ -212,8 +214,8 @@ export function BarTrend({
   /** use responsive height based on viewport (default: true) */
   responsive?: boolean
 }) {
-  const { useChartHeight } = require('@/lib/responsive')
-  const responsiveHeight = responsive ? useChartHeight(height) : height
+  const chartHeight = useChartHeight(height)
+  const responsiveHeight = responsive ? chartHeight : height
   const barFormat = bars[0]?.format
   return (
     <ResponsiveContainer width="100%" height={responsiveHeight}>
@@ -284,8 +286,8 @@ export function Donut({
   /** use responsive height based on viewport (default: true) */
   responsive?: boolean
 }) {
-  const { useChartHeight } = require('@/lib/responsive')
-  const responsiveHeight = responsive ? useChartHeight(height) : height
+  const chartHeight = useChartHeight(height)
+  const responsiveHeight = responsive ? chartHeight : height
   return (
     <div className="relative">
       <ResponsiveContainer width="100%" height={responsiveHeight}>

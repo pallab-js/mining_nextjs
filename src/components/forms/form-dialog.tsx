@@ -1,6 +1,6 @@
 'use client'
 /** FormDialog — modal wrapper for ActionForm. */
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { DialogCloseContext } from './dialog-context'
 
@@ -19,7 +19,7 @@ export function FormDialog({
   const dialogRef = useRef<HTMLDivElement>(null)
   const firstFocusRef = useRef<HTMLDivElement>(null)
 
-  const close = () => setOpen(false)
+  const close = useCallback(() => setOpen(false), [])
 
   useEffect(() => {
     if (!open) return

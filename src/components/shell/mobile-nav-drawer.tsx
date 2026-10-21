@@ -1,6 +1,6 @@
 'use client'
 /** Mobile slide-out navigation drawer. */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { X, LayoutDashboard, Mountain, Activity, Truck, ShieldCheck, Leaf, Boxes, Upload, Settings } from 'lucide-react'
@@ -20,9 +20,14 @@ const NAV = [
 export function MobileNavDrawer() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
+  const isInitialMount = useRef(true)
 
-  // Close drawer on route change
+  // Close drawer on route change (after initial mount)
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
     setOpen(false)
   }, [pathname])
 

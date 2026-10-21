@@ -1,8 +1,6 @@
 /** Site detail — trends, fleet snapshot, env snapshot, incidents. */
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
-import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
 import { PageHeader } from '@/components/page-header'
 import { KpiTile } from '@/components/ui/kpi-tile'
 import { Panel } from '@/components/ui/panel'
