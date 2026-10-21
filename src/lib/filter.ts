@@ -45,6 +45,23 @@ export function parseFilter(sp: { site?: string; range?: string } | undefined): 
   return { siteId, from, to, range }
 }
 
+/** Accepts raw Next `searchParams` (string | string[] | undefined values). */
+export function filterFromSearchParams(
+  sp: Record<string, string | string[] | undefined> | undefined,
+): Filter {
+  return parseFilter({
+    site: typeof sp?.site === 'string' ? sp.site : undefined,
+    range: typeof sp?.range === 'string' ? sp.range : undefined,
+  })
+}
+
+/** Optional `?gran=day|week|month` override for series pages. */
+export function granFrom(
+  sp: Record<string, string | string[] | undefined> | undefined,
+): 'day' | 'week' | 'month' | undefined {
+  return sp?.gran === 'day' || sp?.gran === 'week' || sp?.gran === 'month' ? sp.gran : undefined
+}
+
 /** Equal-length period immediately before `f` (for Δ comparisons). */
 export function previousPeriod(f: Filter): Filter {
   const days = RANGE_PRESETS[f.range]

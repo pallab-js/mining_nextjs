@@ -46,14 +46,14 @@ Methodology: spec-kit style (*specify → plan → tasks → implement*); artifa
 - [x] `error.tsx` + root `loading.tsx` (per-page `loading.tsx` added alongside M6 pages)
 
 ### M6 — Dashboard & module pages
-- [ ] `/` overview: KPI row + 4 chart panels + alert feed
-- [ ] `/sites` list · `/sites/[id]` detail (trend, fleet board, env snapshot, alerts)
-- [ ] `/production` (granularity toggle, 4 charts, monthly table)
-- [ ] `/equipment` (status board, trends, Pareto, heatmap, roster + status control)
-- [ ] `/safety` (KPIs, severity/type charts, open-incident close action)
-- [ ] `/environment` (KPIs, water/CO₂e charts, tailings gauge vs limit)
-- [ ] `/inventory` (stockpiles, shipments, value KPIs)
-- [ ] Filters (`site`, `range`) wired via URL → every page honours them
+- [x] `/` overview: KPI row + 4 chart panels + alert feed
+- [x] `/sites` list · `/sites/[id]` detail (trend, fleet board, env snapshot, alerts)
+- [x] `/production` (granularity toggle, 4 charts, monthly table)
+- [x] `/equipment` (status board, trends, Pareto, heatmap, roster; status control in M7)
+- [x] `/safety` (KPIs, severity/type charts, incident register; close action in M7)
+- [x] `/environment` (KPIs, water/CO₂e charts, tailings gauge vs limit)
+- [x] `/inventory` (stockpiles, shipments, value KPIs)
+- [x] Filters (`site`, `range`) wired via URL → every page honours them
 
 ### M7 — Mutations (control layer)
 - [ ] Server Actions per module with Zod + `refresh()` + `ActionResult` contract

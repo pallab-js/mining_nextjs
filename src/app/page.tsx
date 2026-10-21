@@ -1,69 +1,160 @@
-import Image from "next/image";
+/** Overview — portfolio KPIs, trends, availability heatmap, alert feed. */
+import { Suspense } from 'react'
+import { PageHeader } from '@/components/page-header'
+import { KpiTile } from '@/components/ui/kpi-tile'
+import { Panel } from '@/components/ui/panel'
+import { ChartSkeleton } from '@/components/ui/chart-card'
+import { KpiSkeletons, TableSkeleton } from '@/components/ui/skeletons'
+import { AlertFeed } from '@/components/alert-feed'
+import { Heatmap, PALETTE, TrendChart } from '@/components/charts'
+import { filterFromSearchParams, previousPeriod, rangeLabel } from '@/lib/filter'
+import { getProductionSeries, getProductionTotals } from '@/lib/queries/production'
+import { getAvailabilitySeries, getSiteAvailabilityMatrix } from '@/lib/queries/equipment'
+import { getActiveAlerts } from '@/lib/queries/alerts'
+import { listSites } from '@/lib/queries/sites'
+import { fmtCompact, fmtNum, fmtPct } from '@/lib/format'
+import type { SearchParams } from '@/lib/web'
 
-export default function Home() {
+export default function OverviewPage({ searchParams }: { searchParams: SearchParams }) {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <>
+      <OverviewHeader sp={searchParams} />
+      <div className="space-y-4">
+        <Suspense fallback={<KpiSkeletons count={4} />}>
+          <OverviewKpis sp={searchParams} />
+        </Suspense>
+        <div className="grid gap-4 xl:grid-cols-2">
+          <Suspense fallback={<ChartSkeleton label="Loading production trend" />}>
+            <OverviewProductionChart sp={searchParams} />
+          </Suspense>
+          <Suspense fallback={<ChartSkeleton label="Loading availability trend" />}>
+            <OverviewAvailabilityChart sp={searchParams} />
+          </Suspense>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+        <Suspense fallback={<ChartSkeleton label="Loading availability heatmap" height={180} />}>
+          <OverviewHeatmap sp={searchParams} />
+        </Suspense>
+        <Suspense fallback={<TableSkeleton rows={5} />}>
+          <OverviewAlerts />
+        </Suspense>
+      </div>
+    </>
+  )
+}
+
+type SP = SearchParams
+
+async function OverviewHeader({ sp }: { sp: SP }) {
+  const f = filterFromSearchParams(await sp)
+  const site = f.siteId !== null ? (await listSites()).find((s) => s.id === f.siteId) : null
+  return (
+    <PageHeader
+      title={site ? `${site.code} — ${site.name}` : 'Operations Overview'}
+      subtitle={`${rangeLabel(f)} · ${f.from} → ${f.to}`}
+    />
+  )
+}
+
+async function OverviewKpis({ sp }: { sp: SP }) {
+  const f = filterFromSearchParams(await sp)
+  const prev = previousPeriod(f)
+  const [cur, before] = await Promise.all([getProductionTotals(f), getProductionTotals(prev)])
+  const delta = (a: number, b: number | null) =>
+    b && b !== 0 ? (a - b) / Math.abs(b) : null
+  return (
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <KpiTile
+        label="Ore moved"
+        value={fmtCompact(cur.ore)}
+        unit="t"
+        delta={delta(cur.ore, before.ore)}
+        hint={`${fmtNum(cur.days)} operating days`}
+      />
+      <KpiTile
+        label="Head grade"
+        value={fmtNum(cur.grade, 2)}
+        unit="%"
+        delta={delta(cur.grade ?? 0, before.grade)}
+      />
+      <KpiTile
+        label="Recovery"
+        value={fmtPct(cur.recovery)}
+        delta={delta(cur.recovery ?? 0, before.recovery)}
+      />
+      <KpiTile
+        label="Concentrate"
+        value={fmtCompact(cur.concentrate)}
+        unit="t"
+        delta={delta(cur.concentrate, before.concentrate)}
+      />
     </div>
-  );
+  )
+}
+
+async function OverviewProductionChart({ sp }: { sp: SP }) {
+  const f = filterFromSearchParams(await sp)
+  const data = await getProductionSeries(f)
+  return (
+    <Panel title="Ore & concentrate" hint={rangeLabel(f)}>
+      <TrendChart
+        data={data}
+        xKey="bucket"
+        series={[
+          { key: 'ore', name: 'Ore (t)', color: PALETTE.signal, kind: 'area', format: 'compact2' },
+          { key: 'concentrate', name: 'Concentrate (t)', color: PALETTE.good, format: 'compact2' },
+        ]}
+        yFormat="compact"
+      />
+    </Panel>
+  )
+}
+
+async function OverviewAvailabilityChart({ sp }: { sp: SP }) {
+  const f = filterFromSearchParams(await sp)
+  const data = await getAvailabilitySeries(f)
+  return (
+    <Panel title="Fleet availability" hint={`${rangeLabel(f)} · target 90%`}>
+      <TrendChart
+        data={data}
+        xKey="bucket"
+        series={[{ key: 'availability', name: 'Availability %', color: PALETTE.blue, format: 'pct1' }]}
+        yFormat="pct0"
+        reference={{ y: 90, label: 'target 90%' }}
+      />
+    </Panel>
+  )
+}
+
+async function OverviewHeatmap({ sp }: { sp: SP }) {
+  const f = filterFromSearchParams(await sp)
+  const [matrix, sites] = await Promise.all([getSiteAvailabilityMatrix(f, 14), listSites()])
+  const rowHrefs = Object.fromEntries(
+    sites.filter((s) => matrix.sites.includes(s.code)).map((s) => [s.code, `/sites/${s.id}`]),
+  )
+  return (
+    <Panel title="Availability heatmap — site × day" hint="last 14 days, worst → best">
+      {matrix.sites.length === 0 || matrix.dates.length === 0 ? (
+        <p className="py-6 text-center text-[12px] text-ink-dim">No fleet events in range.</p>
+      ) : (
+        <Heatmap rowLabels={matrix.sites} dates={matrix.dates} cells={matrix.cells} rowHrefs={rowHrefs} />
+      )}
+    </Panel>
+  )
+}
+
+async function OverviewAlerts() {
+  const alerts = await getActiveAlerts()
+  const sites = await listSites()
+  const siteCodes = Object.fromEntries(sites.map((s) => [s.id, s.code]))
+  return (
+    <Panel
+      title="Active alerts"
+      hint="fixed 30-day window · all sites · rules engine"
+      actions={<a href="/settings" className="label-micro focus-ring rounded hover:text-ink">manage rules →</a>}
+    >
+      <div className="-m-4">
+        <AlertFeed alerts={alerts} siteCodes={siteCodes} />
+      </div>
+    </Panel>
+  )
 }

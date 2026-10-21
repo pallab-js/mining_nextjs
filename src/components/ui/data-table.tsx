@@ -1,47 +1,98 @@
 'use client'
 /**
- * DataTable — sortable, paginated dense table for the control room.
- * Columns declare how to render + how to sort; rows are plain objects.
+ * DataTable — sortable, paginated dense table for the control rooms.
+ * Fully serializable: columns declare a field + a display kind (no function
+ * props — functions cannot cross the RSC boundary). Rows are plain objects.
  */
 import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import { Badge, StatusDot, type DotTone } from './status-dot'
+import { fmtWith, type Fmt } from '@/lib/fmt-kinds'
+import { fmtDay } from '@/lib/format'
+import { humanize, toneFor } from '@/lib/tones'
+import type { ViewRow } from '@/lib/view-rows'
 
-export interface Column<T> {
+export type { ViewRow }
+
+export type CellKind = 'text' | 'mono' | 'dim' | 'num' | 'date' | 'badge' | 'dot'
+
+export interface Column {
   key: string
   header: string
   align?: 'left' | 'right'
-  render: (row: T) => React.ReactNode
-  /** value used for sorting; omit to make the column unsortable */
-  sortValue?: (row: T) => string | number | null | undefined
+  kind?: CellKind
+  /** number format when kind is 'num' */
+  fmt?: Fmt
+  /** tone vocabulary for 'badge'/'dot' (site/equipment/shipment/severity/incident) */
+  toneKind?: string
+  /** row field holding an explicit tone ('good'|'warn'|'bad'|'idle') */
+  toneField?: string
   width?: string
+  sortable?: boolean
 }
 
-export function DataTable<T>({
+const TONE_TEXT: Record<DotTone, string> = {
+  good: 'text-good',
+  warn: 'text-warn',
+  bad: 'text-bad',
+  idle: 'text-ink',
+}
+
+function CellView({ col, row }: { col: Column; row: ViewRow }) {
+  const raw = row[col.key]
+  const tone: DotTone =
+    (col.toneField ? (row[col.toneField] as DotTone) : undefined) ??
+    (col.toneKind ? toneFor(col.toneKind, raw === null ? null : String(raw)) : 'idle')
+  switch (col.kind) {
+    case 'num':
+      return (
+        <span className={col.toneField ? TONE_TEXT[tone] : ''}>
+          {raw === null || raw === undefined ? '—' : fmtWith(col.fmt, Number(raw))}
+        </span>
+      )
+    case 'mono':
+      return <span className="num">{raw === null ? '—' : String(raw)}</span>
+    case 'dim':
+      return <span className="text-ink-dim">{raw === null ? '—' : String(raw)}</span>
+    case 'date':
+      return <span className={`num ${col.toneField ? '' : 'text-ink-dim'}`}>{fmtDay(raw === null ? null : String(raw))}</span>
+    case 'badge':
+      return <Badge tone={tone}>{raw === null ? '—' : humanize(String(raw))}</Badge>
+    case 'dot':
+      return (
+        <span className="flex items-center gap-1.5">
+          <StatusDot tone={tone} />
+          {raw === null ? '—' : humanize(String(raw))}
+        </span>
+      )
+    default:
+      return <span>{raw === null || raw === undefined ? '—' : String(raw)}</span>
+  }
+}
+
+export function DataTable({
   columns,
   rows,
-  getRowKey,
   pageSize = 25,
   emptyState,
   dense = false,
 }: {
-  columns: Column<T>[]
-  rows: T[]
-  getRowKey: (row: T) => string | number
+  columns: Column[]
+  rows: ViewRow[]
   pageSize?: number
   emptyState?: React.ReactNode
   dense?: boolean
 }) {
   const [sortKey, setSortKey] = useState<string | null>(null)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
-  const [page, setPage] = useState(0)
 
   const sorted = useMemo(() => {
     const col = columns.find((c) => c.key === sortKey)
-    if (!col?.sortValue) return rows
+    if (!col || col.sortable === false) return rows
     const dir = sortDir === 'asc' ? 1 : -1
     return [...rows].sort((a, b) => {
-      const av = col.sortValue!(a)
-      const bv = col.sortValue!(b)
+      const av = a[col.key]
+      const bv = b[col.key]
       if (av === bv) return 0
       if (av === null || av === undefined) return 1
       if (bv === null || bv === undefined) return -1
@@ -51,6 +102,7 @@ export function DataTable<T>({
   }, [rows, columns, sortKey, sortDir])
 
   const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize))
+  const [page, setPage] = useState(0)
   const safePage = Math.min(page, pageCount - 1)
   const visible = sorted.slice(safePage * pageSize, (safePage + 1) * pageSize)
 
@@ -59,9 +111,8 @@ export function DataTable<T>({
   }
 
   const toggleSort = (key: string) => {
-    if (sortKey === key) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
-    } else {
+    if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    else {
       setSortKey(key)
       setSortDir('asc')
     }
@@ -84,7 +135,7 @@ export function DataTable<T>({
                     style={c.width ? { width: c.width } : undefined}
                     className={`${pad} ${c.align === 'right' ? 'text-right' : 'text-left'} select-none`}
                   >
-                    {c.sortValue ? (
+                    {c.sortable !== false ? (
                       <button
                         type="button"
                         onClick={() => toggleSort(c.key)}
@@ -94,11 +145,7 @@ export function DataTable<T>({
                       >
                         {c.header}
                         {active &&
-                          (sortDir === 'asc' ? (
-                            <ChevronUp className="size-3" />
-                          ) : (
-                            <ChevronDown className="size-3" />
-                          ))}
+                          (sortDir === 'asc' ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />)}
                       </button>
                     ) : (
                       <span className="label-micro">{c.header}</span>
@@ -109,14 +156,11 @@ export function DataTable<T>({
             </tr>
           </thead>
           <tbody>
-            {visible.map((row) => (
-              <tr key={getRowKey(row)} className="border-b border-line/60 last:border-0 hover:bg-panel-2">
+            {visible.map((row, i) => (
+              <tr key={(row.id as string | number) ?? i} className="border-b border-line/60 last:border-0 hover:bg-panel-2">
                 {columns.map((c) => (
-                  <td
-                    key={c.key}
-                    className={`${pad} ${c.align === 'right' ? 'num text-right' : ''} text-ink`}
-                  >
-                    {c.render(row)}
+                  <td key={c.key} className={`${pad} ${c.align === 'right' ? 'text-right' : ''} text-ink`}>
+                    <CellView col={c} row={row} />
                   </td>
                 ))}
               </tr>
@@ -124,11 +168,9 @@ export function DataTable<T>({
           </tbody>
         </table>
       </div>
-      {(sorted.length > pageSize || pageCount > 1) && (
+      {sorted.length > pageSize && (
         <div className="flex items-center justify-between border-t border-line px-4 py-2">
-          <span className="num text-[11px] text-ink-dim">
-            {sorted.length.toLocaleString('en-US')} rows
-          </span>
+          <span className="num text-[11px] text-ink-dim">{sorted.length.toLocaleString('en-US')} rows</span>
           {pageCount > 1 && (
             <div className="flex items-center gap-2">
               <button
