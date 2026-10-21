@@ -1,5 +1,7 @@
 # COMC — Critical Minerals Operations Center
 
+[![CI](https://github.com/pallab-js/mining_nextjs/actions/workflows/ci.yml/badge.svg)](https://github.com/pallab-js/mining_nextjs/actions/workflows/ci.yml)
+
 A local, single-user **operations dashboard for critical-minerals mining**. One dark
 control-room screen shows whether the portfolio is on plan, whether the fleet is healthy,
 whether the site is safe and compliant — and lets you write that data back in by form or
