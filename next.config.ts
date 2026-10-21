@@ -1,5 +1,24 @@
 import type { NextConfig } from "next";
 
+// React's development build uses eval() to reconstruct callstacks and run other
+// debug features, and Turbopack's HMR uses websockets. Neither is needed in
+// production, so 'unsafe-eval'/ws are granted only when running `next dev`.
+const isDev = process.env.NODE_ENV === "development";
+
+const csp = [
+  "default-src 'self'",
+  "frame-ancestors 'none'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "img-src 'self' data:",
+  // The App Router injects inline bootstrap + RSC-flight scripts, so
+  // 'unsafe-inline' is required for scripts and styles; a nonce-based policy
+  // would need middleware. 'unsafe-eval' is development-only.
+  isDev ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'" : "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  isDev ? "connect-src 'self' ws: wss:" : "connect-src 'self'",
+].join("; ");
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
@@ -39,22 +58,7 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "no-referrer" },
           {
             key: "Content-Security-Policy",
-            value: [
-              "default-src 'self'",
-              "frame-ancestors 'none'",
-              "object-src 'none'",
-              "base-uri 'self'",
-              "img-src 'self' data:",
-              // Next's App Router relies on inline bootstrap + RSC-flight scripts,
-              // so `script-src 'self'` alone would block hydration. A nonce-based
-              // policy would need middleware; without that, 'unsafe-inline' for
-              // scripts is required. The directives above still buy real
-              // protection (clickjacking, plugin/base-URI abuse), which is more
-              // than the previous "no CSP at all".
-              "script-src 'self' 'unsafe-inline'",
-              "style-src 'self' 'unsafe-inline'",
-              "connect-src 'self'",
-            ].join("; "),
+            value: csp,
           },
         ],
       },

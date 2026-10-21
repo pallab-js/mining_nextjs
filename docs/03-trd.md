@@ -216,7 +216,10 @@ ever hosted behind a proxy.
   (`frame-ancestors 'none'`, `object-src 'none'`, `base-uri 'self'`, `default-src 'self'`),
   and `poweredByHeader: false`. The CSP keeps `'unsafe-inline'` for scripts/styles
   because the App Router injects inline bootstrap + RSC-flight scripts — a nonce-based
-  policy would require middleware and is deferred.
+  policy would require middleware and is deferred. `'unsafe-eval'` and `ws:` are granted
+  **only** when `NODE_ENV=development`: React's dev build uses `eval()` for debugging and
+  Turbopack's HMR needs websockets, and both break `next dev` without them — production
+  `next start` serves the strict policy.
 - **Uploads**: `serverActions.bodySizeLimit` is set to `6mb` so the importer's
   advertised **5 MB** cap is actually reachable (Next's 1 MB default used to reject
   1–5 MB files with an opaque 500). `readPayload()` re-checks the real byte length
