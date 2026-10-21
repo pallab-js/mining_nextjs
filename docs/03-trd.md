@@ -104,7 +104,9 @@ Server pages describe a form as plain data — `FieldSpec[]` from
 | `status-control.tsx` | unit + status selects → `setEquipmentStatus` |
 | `open-incidents.tsx` | open-incident list with inline Close → `closeIncident` |
 | `rule-list.tsx` | alert-rule list with Enable/Disable + Delete |
+| `data-admin.tsx` | typed-confirm reseed / reset buttons |
 | `toast-host.tsx` (in `src/components/`) | transient success/failure banner (`comc:toast` event) |
+| `import/import-wizard.tsx` (in `src/components/`) | entity picker → CSV input → validation report → commit |
 
 Only the server action itself crosses the RSC boundary; every other prop is
 JSON-serialisable. `FieldSpec` = `{ name, label?, type, options?, defaultValue?,
@@ -121,7 +123,17 @@ placeholder?, step?, min?, max?, hint?, span? }`.
 | `shipments` | site, product, tonnes, destination, customer, status, eta, shipped_date, price_usd_per_t |
 
 Rows validated with the same Zod schemas as the forms; failures are collected (max 25 returned)
-with `{row, column, message}`; valid rows insert inside one transaction (all-or-nothing batch).
+with `{line, column, message}`; valid rows insert inside one transaction.
+
+Import is a two-step flow over the same payload: `validateImport` is a dry run that
+returns the report (`total`, `valid`, `errorCount`, `errors[]`, `fatal?`) and writes
+nothing; `commitImport` re-validates and writes the valid rows, then appends an
+`import_batches` row (`entity`, `filename`, `rows_ok`, `rows_failed`, `errors_json`,
+`created_at`) so every batch stays auditable. Entities with a natural key
+(`production`, `equipment_events`, `environment`) upsert on it — `ON CONFLICT (site_id, date)`
+/ `(equipment_id, date)` `DO UPDATE SET …=excluded.…`; `safety` and `shipments` append.
+Payloads are capped at 5 MB, and templates are generated in the browser from
+`src/lib/import-templates.ts`.
 
 ## 6. Metric registry & alerts (`src/lib/metrics.ts`, `src/lib/alerts.ts`)
 
@@ -152,8 +164,10 @@ water recycled < 75 % · CO₂e intensity > 12 kg/t (each with severity).
 - **Build**: `next build` must pass (prerender validation of Cache Components is itself a test).
 - **End-to-end (script)**: `scripts/e2e-actions.sh` drives every server action over
   HTTP against a running production server (MPA action encoding, `$ACTION_ID_<id>`
-  multipart field) and asserts the resulting database rows — 18 checks covering
-  writes, upserts, Zod rejections, unknown references and duplicate keys.
+  multipart field, `--form-string` so values like `<` survive) and asserts the
+  resulting database rows — 27 checks covering writes, upserts, Zod rejections,
+  unknown references, duplicate keys, CSV import validate/commit/batch history and
+  the typed-confirm guards. Run with `npm run e2e:actions` against `next start`.
 
 ## 9. Error handling contract
 

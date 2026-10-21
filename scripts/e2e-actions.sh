@@ -32,6 +32,16 @@ post() { # $1 = action name, $2 = path, rest = form fields
     --form-string "\$ACTION_ID_$id=1" "${args[@]}"
 }
 
+upload() { # $1 = action name, $2 = path, $3 = local csv file, rest = form fields
+  local name="$1" path="$2" file="$3"; shift 3
+  local id; id="$(action_id "$name")"
+  if [ -z "$id" ]; then echo "NO-ID $name"; return 1; fi
+  local args=()
+  for f in "$@"; do args+=(--form-string "$f"); done
+  curl -s -o /tmp/opencode/e2e-last.html -w "%{http_code}" -X POST "$BASE$path" \
+    --form-string "\$ACTION_ID_$id=1" -F "file=@$file;type=text/csv" "${args[@]}"
+}
+
 check() { # $1 = label, $2 = expected sqlite output, $3 = actual
   if [ "$2" = "$3" ]; then
     echo "PASS  $1"; pass=$((pass+1))
@@ -48,6 +58,8 @@ q "DELETE FROM alert_rules WHERE name='E2E rule';" >/dev/null
 q "DELETE FROM shipments WHERE customer='TestCo';" >/dev/null
 q "DELETE FROM safety_incidents WHERE description='e2e test incident';" >/dev/null
 q "DELETE FROM equipment WHERE code='E2E-UNIT';" >/dev/null
+q "DELETE FROM production_daily WHERE site_id=(SELECT id FROM sites WHERE code='MWE') AND date='2026-12-31';" >/dev/null
+q "DELETE FROM import_batches;" >/dev/null
 
 # resolve ids by code (autoincrement ids shift after a reseed)
 SAL_ID=$(q "SELECT id FROM sites WHERE code='SAL';")
@@ -115,6 +127,43 @@ code=$(post updateSite /sites "id=$siteid" "code=E2E" "name=E2E Test Site" "mine
 check "updateSite http=$code" "care-maintenance|2000" "$(q "SELECT status||'|'||printf('%g',capacity_tpd) FROM sites WHERE id=$siteid;")"
 code=$(post createSite /sites "code=E2E" "name=Duplicate Code" "mineral=lithium" "region=Testville" "mine_type=open-pit" "status=active" "capacity_tpd=1000")
 check "createSite rejects duplicate code" "1" "$(q "SELECT COUNT(*) FROM sites WHERE code='E2E';")"
+
+echo "--- CSV import (validate + commit) ---"
+# Two rows: one valid, one with an impossible recovery → 1 imported, 1 rejected.
+CSV=/tmp/opencode/e2e-import.csv
+printf 'site,date,ore_tonnes,waste_tonnes,concentrate_tonnes,head_grade_pct,recovery_pct,throughput_tpd\n' > "$CSV"
+printf 'MWE,2026-12-31,4444,5555,666,2.5,91.5,4444\n' >> "$CSV"
+printf 'MWE,2026-12-30,111,222,33,2.5,150,111\n' >> "$CSV"
+
+code=$(upload validateImport /import "$CSV" "entity=production")
+check "validateImport http=$code" "0" "$(q "SELECT COUNT(*) FROM production_daily WHERE date IN ('2026-12-31','2026-12-30');")"
+
+code=$(upload commitImport /import "$CSV" "entity=production")
+MWE_ID=$(q "SELECT id FROM sites WHERE code='MWE';")
+check "commitImport http=$code" "4444|5555|666|2.5|91.5|4444" "$(q "SELECT printf('%g',ore_tonnes)||'|'||printf('%g',waste_tonnes)||'|'||printf('%g',concentrate_tonnes)||'|'||printf('%g',head_grade_pct)||'|'||printf('%g',recovery_pct)||'|'||printf('%g',throughput_tpd) FROM production_daily WHERE site_id=$MWE_ID AND date='2026-12-31';")"
+check "commitImport skipped invalid row" "0" "$(q "SELECT COUNT(*) FROM production_daily WHERE site_id=$MWE_ID AND date='2026-12-30';")"
+check "commitImport recorded batch" "production|1|1" "$(q "SELECT entity||'|'||rows_ok||'|'||rows_failed FROM import_batches ORDER BY id DESC LIMIT 1;")"
+
+echo "--- CSV import (upsert on natural key) ---"
+printf 'site,date,ore_tonnes,waste_tonnes,concentrate_tonnes,head_grade_pct,recovery_pct,throughput_tpd\n' > "$CSV"
+printf 'MWE,2026-12-31,7777,5555,666,2.5,91.5,7777\n' >> "$CSV"
+code=$(upload commitImport /import "$CSV" "entity=production")
+check "commitImport upserts same day" "7777|1" "$(q "SELECT printf('%g',ore_tonnes)||'|'||COUNT(*) FROM production_daily WHERE site_id=$MWE_ID AND date='2026-12-31';")"
+
+echo "--- CSV import (bad header rejected) ---"
+printf 'nonsense,columns\n1,2\n' > "$CSV"
+code=$(upload commitImport /import "$CSV" "entity=production")
+check "commitImport rejects missing columns" "2" "$(q "SELECT COUNT(*) FROM import_batches;")"
+
+echo "--- settings guards ---"
+code=$(post reseedDatabase /settings "confirm=WRONG")
+check "reseedDatabase rejects wrong word" "6" "$(q "SELECT COUNT(*) FROM sites;")"
+code=$(post resetDatabase /settings "confirm=WRONG")
+check "resetDatabase rejects wrong word" "6" "$(q "SELECT COUNT(*) FROM sites;")"
+
+echo "--- settings reseed (destructive, runs last) ---"
+code=$(post reseedDatabase /settings "confirm=RESEED")
+check "reseedDatabase http=$code" "5|50|0|0" "$(q "SELECT (SELECT COUNT(*) FROM sites)||'|'||(SELECT COUNT(*) FROM equipment)||'|'||(SELECT COUNT(*) FROM import_batches)||'|'||(SELECT COUNT(*) FROM production_daily WHERE date='2026-12-31');")"
 
 echo
 echo "passed=$pass failed=$fail"

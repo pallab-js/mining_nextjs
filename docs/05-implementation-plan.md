@@ -61,7 +61,7 @@ Methodology: spec-kit style (*specify → plan → tasks → implement*); artifa
 - [x] Fleet status control, incident close
 - [x] Alert-rule CRUD (settings)
 
-Details: 13 actions in `src/lib/actions/*.ts` (`createSite`, `updateSite`,
+Details: 14 actions in `src/lib/actions/*.ts` (`createSite`, `updateSite`,
 `createProduction`, `createEquipment`, `createEquipmentEvent`, `setEquipmentStatus`,
 `createIncident`, `closeIncident`, `createEnvReading`, `createStockpile`,
 `createShipment`, `createRule`, `toggleRule`, `deleteRule`); every action wraps
@@ -70,13 +70,25 @@ One serialisable form spec (`src/lib/field-specs.ts` → `FieldSpec[]`) drives a
 single client `ActionForm` + `FormDialog`; no functions cross the RSC boundary
 except the server actions themselves. Manual records upsert on their natural key
 and report "updated" vs "added". Verified end-to-end over HTTP by
-`scripts/e2e-actions.sh` (18/18 checks: writes, validation rejections, unknown
-references, duplicate-code rejection).
+`scripts/e2e-actions.sh` (writes, validation rejections, unknown references,
+duplicate-code rejection).
 
 ### M8 — CSV import & settings
-- [ ] `/import` wizard: entity → file → validation report → commit + batch history
-- [ ] Template download (generated client-side)
-- [ ] Settings: reseed (typed confirm), reset, JSON export route, import history
+- [x] `/import` wizard: entity → file → validation report → commit + batch history
+- [x] Template download (generated client-side from `src/lib/import-templates.ts`)
+- [x] Settings: reseed (typed confirm), reset, JSON export route, import history
+- [x] Import upserts on the natural key (site+date, unit+date, site+date) and
+      appends for incidents/shipments; every commit records an `import_batches` row
+
+Details: `validateImport` is a dry run (parses, fuzzy-maps headers, resolves site
+and equipment references, validates each row with zod) and returns a per-row
+report (line, column, message) that the wizard renders as a table; `commitImport`
+re-runs the same pipeline and writes the valid rows in one better-sqlite3
+transaction, then logs the batch so `/import` and `/settings › Diagnostics` show
+the audit trail. `reseedDatabase` / `resetDatabase` demand the typed words
+`RESEED` / `RESET` (re-checked server-side). `/api/export` streams every table as
+a JSON attachment and is marked dynamic with `connection()`.
+Verified by `scripts/e2e-actions.sh` — 27/27 checks.
 
 ### M9 — Quality & release
 - [ ] `npm run lint` clean · `npm run typecheck` clean · `npm test` green · `npm run build` passes

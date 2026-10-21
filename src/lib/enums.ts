@@ -67,6 +67,10 @@ export const IMPORT_ENTITIES = [
 ] as const
 export type ImportEntity = (typeof IMPORT_ENTITIES)[number]
 
+/** Words the operator must type to confirm a destructive settings action. */
+export const RESEED_CONFIRM = 'RESEED'
+export const RESET_CONFIRM = 'RESET'
+
 /** Metric keys addressable by the alert engine (see lib/metrics.ts). */
 export const METRIC_KEYS = [
   'recovery_pct',

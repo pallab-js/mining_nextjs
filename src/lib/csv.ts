@@ -155,14 +155,8 @@ export const ENTITY_COLUMNS: Record<ImportEntity, readonly string[]> = {
   ],
 }
 
-/** Downloadable template headers (first column is the foreign key). */
-export const TEMPLATE_HEADERS: Record<ImportEntity, readonly string[]> = {
-  production: ['site', 'date', 'ore_tonnes', 'waste_tonnes', 'concentrate_tonnes', 'head_grade_pct', 'recovery_pct', 'throughput_tpd'],
-  equipment_events: ['equipment', 'date', 'running_hours', 'downtime_hours', 'downtime_reason', 'fuel_litres'],
-  safety: ['site', 'date', 'type', 'severity', 'description', 'lost_time_days', 'reported_by'],
-  environment: ['site', 'date', 'water_withdrawal_m3', 'water_recycled_pct', 'energy_mwh', 'co2e_tonnes', 'tailings_level_pct'],
-  shipments: ['site', 'product', 'tonnes', 'destination', 'customer', 'status', 'eta', 'shipped_date', 'price_usd_per_t'],
-}
+/** Downloadable template headers live in the shared, dependency-free module. */
+export { TEMPLATE_HEADERS } from './import-templates'
 
 const SCHEMAS = {
   production: productionSchema,
