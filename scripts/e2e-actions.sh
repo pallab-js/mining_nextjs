@@ -10,6 +10,26 @@ DB="${E2E_DB:-data/mining.db}"
 TMP="${E2E_TMP:-/tmp/opencode}"
 mkdir -p "$TMP"
 
+# Fail fast with a clear message rather than a cascade of confusing mismatches.
+for dep in curl sqlite3 python3; do
+  command -v "$dep" >/dev/null 2>&1 || {
+    echo "ERROR: '$dep' is required but not on PATH." >&2
+    exit 2
+  }
+done
+[ -f "$DB" ] || {
+  echo "ERROR: database '$DB' not found — run 'npm run db:seed' first." >&2
+  exit 2
+}
+[ -f '.next/server/server-reference-manifest.json' ] || {
+  echo "ERROR: no production build found — run 'npm run build' first." >&2
+  exit 2
+}
+curl -sf -o /dev/null "$BASE/" || {
+  echo "ERROR: no server responding at $BASE — start it with 'npx next start'." >&2
+  exit 2
+}
+
 pass=0
 fail=0
 

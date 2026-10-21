@@ -138,4 +138,15 @@ committed. `typecheck` now runs `next typegen` first (`next typegen && tsc
 clean clone: seed ✓, typecheck ✓, lint ✓, 42/42 unit tests ✓, build ✓ (14
 routes), all nine routes 200 with zero server errors, and **27/27** e2e checks
 against the cloned app on a different port. The e2e harness also gained
-`E2E_BASE` / `E2E_DB` / `E2E_TMP` overrides so it can target any instance.
+`E2E_BASE` / `E2E_DB` / `E2E_TMP` overrides so it can target any instance, plus
+pre-flight checks that exit `2` with a clear message when the server, database
+or build is missing.
+
+Post-release follow-up — continuous integration. `.github/workflows/ci.yml`
+runs the entire verification chain on every push to `main` and every pull
+request: typecheck → lint → unit tests → build → route smoke check (every page
+plus `/api/export` must return 200) → e2e action checks, with npm caching, the
+Node version read from `.nvmrc`, and superseded runs cancelled per branch. No
+services or secrets are required because the app is local-only. The workflow was
+rehearsed end to end against a clean clone before being committed, and validated
+with `actionlint` (clean) and `shellcheck` (all run blocks clean).

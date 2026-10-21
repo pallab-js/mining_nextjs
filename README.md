@@ -108,7 +108,25 @@ npm run e2e:actions         # 27 end-to-end assertions over all 18 actions
 The e2e harness resolves action ids from the build's server-reference manifest, posts the
 multipart encoding React expects, and asserts the rows that land in SQLite — covering writes,
 upserts, Zod rejections, unknown references, duplicate keys, CSV validate/commit, batch
-history and the destructive-action guards.
+history and the destructive-action guards. It checks its own prerequisites (server reachable,
+database seeded, build present) and exits `2` with a clear message if one is missing.
+
+### Continuous integration
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs that whole chain on every push to
+`main` and every pull request: **typecheck → lint → unit tests → build → route smoke check →
+e2e action checks**. The app is local-only, so no services or secrets are needed — it runs on
+a stock `ubuntu-latest` runner with Node from `.nvmrc` and npm caching. In-flight runs for a
+branch are cancelled when a newer commit arrives.
+
+To reproduce it locally:
+
+```bash
+npm ci && npm run typecheck && npm run lint && npm test && npm run build && npm run db:seed
+npx next start -p 3457 &
+npm run e2e:actions
+```
+
 
 ## Docs
 

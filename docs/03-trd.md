@@ -165,6 +165,12 @@ water recycled < 75 % · CO₂e intensity > 12 kg/t (each with severity).
   step, so `typecheck` runs it first — without it `tsc` fails on a fresh clone,
   where neither `.next` nor `next-env.d.ts` exists yet.
 - **Build**: `next build` must pass (prerender validation of Cache Components is itself a test).
+- **Continuous integration**: `.github/workflows/ci.yml` chains all of the above on
+  pushes to `main` and on pull requests — typecheck → lint → unit tests → build →
+  route smoke check → e2e action checks. It needs no services or secrets (the app
+  is local-only), reads the Node version from `.nvmrc`, caches npm, and cancels
+  superseded runs per branch. The route step asserts every page and `/api/export`
+  return 200; failures surface as `::error::` annotations.
 - **End-to-end (script)**: `scripts/e2e-actions.sh` drives every server action over
   HTTP against a running production server (MPA action encoding, `$ACTION_ID_<id>`
   multipart field, `--form-string` so values like `<` survive) and asserts the
@@ -172,7 +178,9 @@ water recycled < 75 % · CO₂e intensity > 12 kg/t (each with severity).
   unknown references, duplicate keys, CSV import validate/commit/batch history and
   the typed-confirm guards. Run with `npm run e2e:actions` against `next start`;
   `E2E_BASE` and `E2E_DB` retarget the server and database (scratch files follow
-  `E2E_TMP`), so the suite can run against any instance without edits.
+  `E2E_TMP`), so the suite can run against any instance without edits. Missing
+  prerequisites (no server, unseeded database, no build) exit `2` with a message
+  rather than producing a cascade of mismatches.
 
 ## 9. Error handling contract
 
