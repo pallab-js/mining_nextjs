@@ -13,6 +13,8 @@ Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind 
 ## Quick start
 
 ```bash
+git clone https://github.com/pallab-js/mining_nextjs.git
+cd mining_nextjs
 nvm use                 # Node 22.x (see .nvmrc)
 npm install
 npm run db:seed         # deterministic 12-month demo dataset
