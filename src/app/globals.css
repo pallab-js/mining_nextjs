@@ -1,26 +1,95 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ---------------------------------------------------------------- tokens */
+/* Dark control-room palette (docs/04-ui-ux.md §2). Signal colours only
+   carry meaning: good = healthy, warn = degraded, bad = breach/critical. */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+@theme {
+  --color-canvas: #0a0f16;
+  --color-panel: #111823;
+  --color-panel-2: #0d141d;
+  --color-line: #1e2a3a;
+  --color-ink: #e6edf6;
+  --color-ink-dim: #8b9bb0;
+  --color-signal: #f5a524;
+  --color-good: #2dd4bf;
+  --color-warn: #f5a524;
+  --color-bad: #f43f5e;
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ------------------------------------------------------------------ base */
+
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-signal) 30%, transparent);
+}
+
+/* Subtle control-room grid backdrop for the top bar / page headers */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--color-line) 45%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-line) 45%, transparent) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, black, transparent);
+}
+
+/* Micro label: uppercase tracking used for KPI labels & table headers */
+.label-micro {
+  font-size: 10px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-ink-dim);
+}
+
+/* All numbers in the UI are mono + tabular */
+.num {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Focus ring, shared by every interactive element */
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-canvas), 0 0 0 4px color-mix(in srgb, var(--color-signal) 60%, transparent);
+}
+
+/* Skeleton pulse (loading states) */
+@keyframes pulse-dim {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.7; }
+}
+.skeleton {
+  background: var(--color-panel-2);
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  animation: pulse-dim 1.5s ease-in-out infinite;
+}
+
+/* Thin scrollbars for dense tables */
+.scroll-slim {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}
+.scroll-slim::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+.scroll-slim::-webkit-scrollbar-thumb {
+  background: var(--color-line);
+  border-radius: 4px;
 }

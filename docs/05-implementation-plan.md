@@ -40,10 +40,10 @@ Methodology: spec-kit style (*specify → plan → tasks → implement*); artifa
 - [x] Aggregate SQL: series (day/week/month buckets), Pareto, heatmap matrices, KPI rollups
 
 ### M5 — Shell & design system
-- [ ] `globals.css` tokens (canvas/panel/line/ink/signals), Geist fonts, base utilities
-- [ ] Layout: rail nav (active states, icon-collapse), top bar (site/range selects, freshness, bell)
-- [ ] Primitives: Panel, KpiTile, ChartCard, Skeletons, EmptyState, Badge/StatusDot, DataTable
-- [ ] `error.tsx` + `loading.tsx` per segment
+- [x] `globals.css` tokens (canvas/panel/line/ink/signals), Geist fonts, base utilities
+- [x] Layout: rail nav (active states, icon-collapse), top bar (site/range selects, freshness, bell)
+- [x] Primitives: Panel, KpiTile, ChartCard, Skeletons, EmptyState, Badge/StatusDot, DataTable
+- [x] `error.tsx` + root `loading.tsx` (per-page `loading.tsx` added alongside M6 pages)
 
 ### M6 — Dashboard & module pages
 - [ ] `/` overview: KPI row + 4 chart panels + alert feed
