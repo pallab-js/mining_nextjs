@@ -15,7 +15,11 @@ import { connection } from '../queries/sql'
 import { siteResolveMap } from '../queries/sites'
 import { equipmentResolveMap } from '../queries/equipment'
 
-/** Hard cap on the uploaded payload. */
+/**
+ * App-level cap on the uploaded payload. Kept *below* the framework ceiling in
+ * `next.config.ts` (`serverActions.bodySizeLimit: '6mb'`) so an oversized file
+ * reaches this friendly message instead of Next's bare "Body exceeded" 500.
+ */
 const MAX_BYTES = 5 * 1024 * 1024
 
 /** Result shape for the import actions (extends the ActionResult contract). */
@@ -75,14 +79,23 @@ async function readPayload(
   const file = fd.get('file')
   if (file && typeof file === 'object' && typeof (file as File).text === 'function') {
     const f = file as File
+    // `f.size` is client-reported and must not be trusted as the only guard;
+    // it is still a cheap early-out for obviously oversized uploads.
     if (f.size > MAX_BYTES) {
       return { error: 'File is larger than 5 MB — split it into smaller files.' }
     }
-    if (f.size > 0) return { text: await f.text(), filename: f.name || 'upload.csv' }
+    if (f.size > 0) {
+      const text = await f.text()
+      // Authoritative check: measure the bytes we actually hold.
+      if (Buffer.byteLength(text, 'utf8') > MAX_BYTES) {
+        return { error: 'File is larger than 5 MB — split it into smaller files.' }
+      }
+      return { text, filename: f.name || 'upload.csv' }
+    }
   }
   const pasted = fd.get('text')
   if (typeof pasted === 'string' && pasted.trim() !== '') {
-    if (pasted.length > MAX_BYTES) {
+    if (Buffer.byteLength(pasted, 'utf8') > MAX_BYTES) {
       return { error: 'Pasted data is larger than 5 MB — split it into smaller files.' }
     }
     return { text: pasted, filename: 'pasted.csv' }

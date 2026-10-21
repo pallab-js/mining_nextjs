@@ -195,6 +195,37 @@ water recycled < 75 % · CO₂e intensity > 12 kg/t (each with severity).
 - `data/` ignored; docs committed; remote added when supplied by user.
 - `.env` not required; port 3000 default.
 
+## 10a. Security posture
+
+Threat model: **single-user, local-only** — no auth by design, no multi-tenancy,
+`DATABASE_PATH` is an operator env var (never request-derived). The hardening below
+targets what *does* apply: browser-reachable abuse and safe behaviour if the app is
+ever hosted behind a proxy.
+
+- **Injection**: all SQL goes through prepared statements (`sql.ts` helpers, drizzle);
+  table/column names in the importer come from compile-time constants. `?site=` is
+  regex-gated to digits and `?range=` whitelisted against presets (`filter.ts`).
+- **XSS**: no `dangerouslySetInnerHTML`/`eval`/`new Function` anywhere; React escapes
+  user data on every render path (form **and** CSV import), verified with stored
+  `<script>`/`onerror` payloads on list *and* detail pages.
+- **CSRF**: Next aborts cross-origin Server Action POSTs (`Origin` check) before any
+  mutation; verified that an `Origin: https://evil.example` POST returns 500 and
+  leaves the row unchanged.
+- **Headers** (`next.config.ts`): `X-Content-Type-Options: nosniff`,
+  `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, a CSP
+  (`frame-ancestors 'none'`, `object-src 'none'`, `base-uri 'self'`, `default-src 'self'`),
+  and `poweredByHeader: false`. The CSP keeps `'unsafe-inline'` for scripts/styles
+  because the App Router injects inline bootstrap + RSC-flight scripts — a nonce-based
+  policy would require middleware and is deferred.
+- **Uploads**: `serverActions.bodySizeLimit` is set to `6mb` so the importer's
+  advertised **5 MB** cap is actually reachable (Next's 1 MB default used to reject
+  1–5 MB files with an opaque 500). `readPayload()` re-checks the real byte length
+  after reading rather than trusting the client-reported `file.size`.
+- **Dependencies**: `npm audit --omit=dev` reports **0** vulnerabilities. The 5
+  high-severity advisories are dev-only (`braces → micromatch → fast-glob →
+  @next/eslint-plugin-next`), unreachable at runtime; the "fix" is a breaking
+  downgrade, so it is tracked rather than applied.
+
 ## 11. Risks & mitigations
 
 | Risk | Mitigation |
@@ -204,4 +235,5 @@ water recycled < 75 % · CO₂e intensity > 12 kg/t (each with severity).
 | better-sqlite3 native build | prebuilt binaries for Node 22; verified at install |
 | Recharts SSR | client components only; skeletons fill pre-hydration |
 | CSV injection of arbitrary SQL | parameterised Drizzle/`sql` bindings only; enums checked by Zod |
+| Upload size mismatch (framework 1 MB vs advertised 5 MB) | `serverActions.bodySizeLimit: '6mb'` + real-byte re-check in `readPayload()` |
 | Drizzle schema drift vs hand-written DDL | both live side-by-side in `db/` with a comment pointing at each other; unit smoke test opens a fresh DB |
