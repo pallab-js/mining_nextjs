@@ -28,13 +28,15 @@ env:
 jobs:
   verify:
     name: Typecheck, lint, test, build
-    runs-on: ubuntu-latest
+    # Pinned rather than `ubuntu-latest`: that label migrates to Ubuntu 26 in
+    # October 2026, and a silent image change should not be able to break CI.
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           # Matches .nvmrc
           node-version-file: .nvmrc
@@ -93,11 +95,13 @@ jobs:
       - name: End-to-end server action checks
         # Drives all 18 server actions over real HTTP and asserts the resulting
         # SQLite rows (27 assertions). The script hard-depends on the sqlite3 CLI
-        # and python3 (and now checks for them itself), so install them explicitly
-        # rather than relying on the runner image.
+        # and python3 (and checks for them itself), so install it if the image
+        # does not already provide it.
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq sqlite3
+          command -v sqlite3 >/dev/null || {
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq sqlite3
+          }
           npm run e2e:actions
         env:
           E2E_BASE: http://localhost:3457
