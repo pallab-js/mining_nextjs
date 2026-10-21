@@ -1,5 +1,6 @@
 /** Stockpiles & shipments — inventory levels, pipeline, value. */
 import { Suspense } from 'react'
+import { connection } from 'next/server'
 import { Boxes } from 'lucide-react'
 import { PageHeader } from '@/components/page-header'
 import { KpiTile } from '@/components/ui/kpi-tile'
@@ -10,6 +11,10 @@ import { DataTable, type Column } from '@/components/ui/data-table'
 import { viewRows } from '@/lib/view-rows'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Donut, PALETTE } from '@/components/charts'
+import { ActionForm } from '@/components/forms/action-form'
+import { FormDialog } from '@/components/forms/form-dialog'
+import { createShipment, createStockpile } from '@/lib/actions/inventory'
+import { shipmentFields, stockpileFields } from '@/lib/field-specs'
 import { filterFromSearchParams, rangeLabel } from '@/lib/filter'
 import {
   getShipmentKpis,
@@ -17,6 +22,7 @@ import {
   listShipments,
   listStockpiles,
 } from '@/lib/queries/inventory'
+import { getSiteOptions } from '@/lib/queries/sites'
 import { fmtCompact, fmtInt, fmtMoney } from '@/lib/format'
 import type { SearchParams } from '@/lib/web'
 
@@ -29,10 +35,42 @@ export default function InventoryPage({ searchParams }: { searchParams: SearchPa
 }
 
 async function InventoryContent({ sp }: { sp: SearchParams }) {
+  await connection()
   const f = filterFromSearchParams(await sp)
+  const sites = await getSiteOptions()
+  const scopedSite = sites.find((s) => s.id === f.siteId)?.code
   return (
     <>
-      <PageHeader title="Stockpiles & Shipments" subtitle={`${rangeLabel(f)} · ${f.from} → ${f.to}`} />
+      <PageHeader
+        title="Stockpiles & Shipments"
+        subtitle={`${rangeLabel(f)} · ${f.from} → ${f.to}`}
+        actions={
+          <>
+            <FormDialog
+              label="＋ Stockpile"
+              title="Update stockpile"
+              description="One stockpile per site and product — saving updates it."
+            >
+              <ActionForm
+                action={createStockpile}
+                fields={stockpileFields(sites, scopedSite)}
+                submitLabel="Save stockpile"
+              />
+            </FormDialog>
+            <FormDialog
+              label="＋ Shipment"
+              title="Create shipment"
+              description="Log a load moving from a site to a customer."
+            >
+              <ActionForm
+                action={createShipment}
+                fields={shipmentFields(sites, scopedSite)}
+                submitLabel="Create shipment"
+              />
+            </FormDialog>
+          </>
+        }
+      />
       <div className="space-y-4">
         <Suspense fallback={<KpiSkeletons count={6} />}>
           <InventoryKpis sp={sp} />

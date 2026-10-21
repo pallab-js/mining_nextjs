@@ -1,5 +1,6 @@
 /** Production & grades — KPIs, multi-granularity charts, monthly table. */
 import { Suspense } from 'react'
+import { connection } from 'next/server'
 import { PageHeader } from '@/components/page-header'
 import { KpiTile } from '@/components/ui/kpi-tile'
 import { Panel } from '@/components/ui/panel'
@@ -10,6 +11,10 @@ import { viewRows } from '@/lib/view-rows'
 import { EmptyState } from '@/components/ui/empty-state'
 import { GranToggle, type Gran } from '@/components/gran-toggle'
 import { Donut, PALETTE, TrendChart } from '@/components/charts'
+import { ActionForm } from '@/components/forms/action-form'
+import { FormDialog } from '@/components/forms/form-dialog'
+import { createProduction } from '@/lib/actions/production'
+import { productionFields } from '@/lib/field-specs'
 import {
   filterFromSearchParams,
   granFrom,
@@ -22,6 +27,7 @@ import {
   getProductionSeries,
   getProductionTotals,
 } from '@/lib/queries/production'
+import { getSiteOptions } from '@/lib/queries/sites'
 import { fmtCompact, fmtNum, fmtPct } from '@/lib/format'
 import type { SearchParams } from '@/lib/web'
 
@@ -36,15 +42,33 @@ export default function ProductionPage({ searchParams }: { searchParams: SearchP
 }
 
 async function ProductionContent({ sp }: { sp: SearchParams }) {
+  await connection()
   const params = await sp
   const f = filterFromSearchParams(params)
   const gran: Gran = granFrom(params) ?? 'day'
+  const sites = await getSiteOptions()
+  const scopedSite = sites.find((s) => s.id === f.siteId)?.code
   return (
     <>
       <PageHeader
         title="Production & Grades"
         subtitle={`${rangeLabel(f)} · ${f.from} → ${f.to}`}
-        actions={<GranToggle current={gran} />}
+        actions={
+          <>
+            <GranToggle current={gran} />
+            <FormDialog
+              label="＋ Record"
+              title="Record daily production"
+              description="One row per site per day — re-saving a date updates it."
+            >
+              <ActionForm
+                action={createProduction}
+                fields={productionFields(sites, scopedSite)}
+                submitLabel="Save record"
+              />
+            </FormDialog>
+          </>
+        }
       />
       <div className="space-y-4">
         <Suspense fallback={<KpiSkeletons count={6} />}>

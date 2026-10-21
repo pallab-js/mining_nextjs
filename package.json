@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:seed": "tsx scripts/seed.ts",
-    "db:reset": "tsx scripts/reset.ts"
+    "db:reset": "tsx scripts/reset.ts",
+    "e2e:actions": "bash scripts/e2e-actions.sh"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",

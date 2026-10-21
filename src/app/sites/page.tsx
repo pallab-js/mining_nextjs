@@ -4,6 +4,10 @@ import { Mountain } from 'lucide-react'
 import { PageHeader } from '@/components/page-header'
 import { Badge, StatusDot } from '@/components/ui/status-dot'
 import { EmptyState } from '@/components/ui/empty-state'
+import { ActionForm } from '@/components/forms/action-form'
+import { FormDialog } from '@/components/forms/form-dialog'
+import { createSite } from '@/lib/actions/sites'
+import { siteFields } from '@/lib/field-specs'
 import { listSites } from '@/lib/queries/sites'
 import { fmtInt, fmtDay } from '@/lib/format'
 import { toneFor, humanize } from '@/lib/tones'
@@ -17,6 +21,15 @@ export default async function SitesPage() {
       <PageHeader
         title="Sites & Mines"
         subtitle={`${sites.length} site${sites.length === 1 ? '' : 's'} in portfolio`}
+        actions={
+          <FormDialog
+            label="＋ New site"
+            title="Create site"
+            description="Add a mine or operation to the portfolio."
+          >
+            <ActionForm action={createSite} fields={siteFields()} submitLabel="Create site" />
+          </FormDialog>
+        }
       />
       {sites.length === 0 ? (
         <div className="rounded-lg border border-line bg-panel">

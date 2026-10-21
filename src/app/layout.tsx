@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import "./globals.css";
 import { NavRail } from "@/components/shell/nav-rail";
 import { TopBarBoundary } from "@/components/shell/top-bar";
+import { ToastHost } from "@/components/toast-host";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             {children}
           </main>
         </div>
+        <ToastHost />
       </body>
     </html>
   );

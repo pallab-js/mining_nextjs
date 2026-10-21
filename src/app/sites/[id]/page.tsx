@@ -9,6 +9,10 @@ import { Panel } from '@/components/ui/panel'
 import { ChartSkeleton } from '@/components/ui/chart-card'
 import { KpiSkeletons, TableSkeleton } from '@/components/ui/skeletons'
 import { Badge, StatusDot } from '@/components/ui/status-dot'
+import { ActionForm } from '@/components/forms/action-form'
+import { FormDialog } from '@/components/forms/form-dialog'
+import { updateSite } from '@/lib/actions/sites'
+import { siteFields } from '@/lib/field-specs'
 import { AlertFeed } from '@/components/alert-feed'
 import { Gauge, PALETTE, TrendChart } from '@/components/charts'
 import { filterFromSearchParams, previousPeriod, rangeLabel } from '@/lib/filter'
@@ -59,6 +63,34 @@ async function SiteDetail({ sp, idPromise }: { sp: SearchParams; idPromise: Site
               {fmtDay(site.openedDate)} · thru {fmtDay(site.latestDate)}
             </span>
           </>
+        }
+        actions={
+          <FormDialog
+            label="Edit site"
+            title={`Edit ${site.code}`}
+            description="Changes apply across every module for this site."
+          >
+            <ActionForm
+              action={updateSite}
+              fields={[
+                { name: 'id', type: 'hidden', defaultValue: String(site.id) },
+                ...siteFields({
+                  code: site.code,
+                  name: site.name,
+                  mineral: site.mineral,
+                  region: site.region,
+                  mine_type: site.mineType,
+                  status: site.status,
+                  capacity_tpd: String(site.capacityTpd),
+                  lat: site.lat === null ? undefined : String(site.lat),
+                  lon: site.lon === null ? undefined : String(site.lon),
+                  opened_date: site.openedDate ?? undefined,
+                  description: site.description ?? undefined,
+                }),
+              ]}
+              submitLabel="Save changes"
+            />
+          </FormDialog>
         }
       />
       <div className="space-y-4">

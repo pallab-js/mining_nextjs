@@ -1,5 +1,6 @@
 /** Equipment & fleet — status board, trends, Pareto, utilization heatmap, roster. */
 import { Suspense } from 'react'
+import { connection } from 'next/server'
 import { PageHeader } from '@/components/page-header'
 import { KpiTile } from '@/components/ui/kpi-tile'
 import { Panel } from '@/components/ui/panel'
@@ -10,15 +11,22 @@ import { viewRows } from '@/lib/view-rows'
 import { EmptyState } from '@/components/ui/empty-state'
 import { StatusDot } from '@/components/ui/status-dot'
 import { BarTrend, Heatmap, PALETTE, TrendChart } from '@/components/charts'
+import { ActionForm } from '@/components/forms/action-form'
+import { FormDialog } from '@/components/forms/form-dialog'
+import { StatusControl } from '@/components/forms/status-control'
+import { createEquipment, createEquipmentEvent } from '@/lib/actions/equipment'
+import { equipmentEventFields, equipmentFields } from '@/lib/field-specs'
 import { filterFromSearchParams, previousPeriod, rangeLabel } from '@/lib/filter'
 import {
   getAvailabilitySeries,
   getAvailabilityTotals,
   getDowntimePareto,
+  getEquipmentOptions,
   getFleetStatusCounts,
   getRoster,
   getUnitUtilizationMatrix,
 } from '@/lib/queries/equipment'
+import { getSiteOptions } from '@/lib/queries/sites'
 import { fmtCompact, fmtPct } from '@/lib/format'
 import type { SearchParams } from '@/lib/web'
 
@@ -29,20 +37,56 @@ export default function EquipmentPage({ searchParams }: { searchParams: SearchPa
 }
 
 async function EquipmentContent({ sp }: { sp: SearchParams }) {
+  await connection()
   const f = filterFromSearchParams(await sp)
+  const [equipment, sites] = await Promise.all([getEquipmentOptions(), getSiteOptions()])
+  const scopedSite = sites.find((s) => s.id === f.siteId)?.code
   return (
     <>
       <PageHeader
         title="Equipment & Fleet"
         subtitle={`${rangeLabel(f)} · ${f.from} → ${f.to}`}
+        actions={
+          <>
+            <FormDialog
+              label="＋ Add unit"
+              title="Add fleet unit"
+              description="Register a new machine against a site."
+            >
+              <ActionForm
+                action={createEquipment}
+                fields={equipmentFields(sites, scopedSite)}
+                submitLabel="Add unit"
+              />
+            </FormDialog>
+            <FormDialog
+              label="＋ Log event"
+              title="Log equipment event"
+              description="Running hours, downtime and fuel for one unit on one day."
+            >
+              <ActionForm
+                action={createEquipmentEvent}
+                fields={equipmentEventFields(equipment)}
+                submitLabel="Save event"
+              />
+            </FormDialog>
+          </>
+        }
       />
       <div className="space-y-4">
         <Suspense fallback={<KpiSkeletons count={4} />}>
           <EquipmentKpis sp={sp} />
         </Suspense>
-        <Suspense fallback={<TableSkeleton rows={5} />}>
-          <StatusBoard sp={sp} />
-        </Suspense>
+        <div className="grid gap-4 xl:grid-cols-3">
+          <div className="xl:col-span-2">
+            <Suspense fallback={<TableSkeleton rows={5} />}>
+              <StatusBoard sp={sp} />
+            </Suspense>
+          </div>
+          <Suspense fallback={<TableSkeleton rows={4} />}>
+            <StatusControlPanel sp={sp} />
+          </Suspense>
+        </div>
         <div className="grid gap-4 xl:grid-cols-2">
           <Suspense fallback={<ChartSkeleton label="Loading availability" />}>
             <AvailabilityChart sp={sp} />
@@ -117,6 +161,22 @@ async function StatusBoard({ sp }: { sp: SearchParams }) {
             </div>
           ))}
         </div>
+      )}
+    </Panel>
+  )
+}
+
+async function StatusControlPanel({ sp }: { sp: SearchParams }) {
+  const f = filterFromSearchParams(await sp)
+  const roster = await getRoster(f)
+  return (
+    <Panel title="Unit status control" hint="set a unit's live status">
+      {roster.length === 0 ? (
+        <EmptyState compact title="No equipment" description="Seed or import a fleet first." />
+      ) : (
+        <StatusControl
+          units={roster.map((r) => ({ id: r.id, code: r.code, name: r.name, status: r.status }))}
+        />
       )}
     </Panel>
   )

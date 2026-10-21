@@ -91,6 +91,25 @@ Signature convention: `(formData: FormData) => Promise<ActionResult>` where
 
 All end with `refresh()` (`next/cache`). Validation via zod `.safeParse` on `FormData` → object.
 
+### 4.1 Form layer (`src/components/forms/*`)
+
+Server pages describe a form as plain data — `FieldSpec[]` from
+`src/lib/field-specs.ts` — and hand it to one client component:
+
+| Component | Role |
+|---|---|
+| `action-form.tsx` | renders `FieldSpec[]`, calls the server action, shows `fieldErrors` per field |
+| `form-dialog.tsx` | modal wrapper (Esc / backdrop close) around a form |
+| `dialog-context.tsx` | client context so a form can close its dialog on success |
+| `status-control.tsx` | unit + status selects → `setEquipmentStatus` |
+| `open-incidents.tsx` | open-incident list with inline Close → `closeIncident` |
+| `rule-list.tsx` | alert-rule list with Enable/Disable + Delete |
+| `toast-host.tsx` (in `src/components/`) | transient success/failure banner (`comc:toast` event) |
+
+Only the server action itself crosses the RSC boundary; every other prop is
+JSON-serialisable. `FieldSpec` = `{ name, label?, type, options?, defaultValue?,
+placeholder?, step?, min?, max?, hint?, span? }`.
+
 ## 5. CSV import format (header row required; matching case/space-insensitive)
 
 | entity | required columns |
@@ -131,6 +150,10 @@ water recycled < 75 % · CO₂e intensity > 12 kg/t (each with severity).
   (header mapping, per-row errors, numeric coercion, site resolution).
 - **Static**: `eslint` (next/core-web-vitals + ts) and `tsc --noEmit` in CI-equivalent script.
 - **Build**: `next build` must pass (prerender validation of Cache Components is itself a test).
+- **End-to-end (script)**: `scripts/e2e-actions.sh` drives every server action over
+  HTTP against a running production server (MPA action encoding, `$ACTION_ID_<id>`
+  multipart field) and asserts the resulting database rows — 18 checks covering
+  writes, upserts, Zod rejections, unknown references and duplicate keys.
 
 ## 9. Error handling contract
 

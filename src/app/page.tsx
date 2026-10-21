@@ -1,5 +1,6 @@
 /** Overview — portfolio KPIs, trends, availability heatmap, alert feed. */
 import { Suspense } from 'react'
+import { connection } from 'next/server'
 import { PageHeader } from '@/components/page-header'
 import { KpiTile } from '@/components/ui/kpi-tile'
 import { Panel } from '@/components/ui/panel'
@@ -16,23 +17,34 @@ import { fmtCompact, fmtNum, fmtPct } from '@/lib/format'
 import type { SearchParams } from '@/lib/web'
 
 export default function OverviewPage({ searchParams }: { searchParams: SearchParams }) {
+  return <OverviewContent sp={searchParams} />
+}
+
+type SP = SearchParams
+
+/**
+ * Page body — `connection()` first so the whole subtree is rendered at
+ * request time (the filter's "now" must never be captured at prerender).
+ */
+async function OverviewContent({ sp }: { sp: SP }) {
+  await connection()
   return (
     <>
-      <OverviewHeader sp={searchParams} />
+      <OverviewHeader sp={sp} />
       <div className="space-y-4">
         <Suspense fallback={<KpiSkeletons count={4} />}>
-          <OverviewKpis sp={searchParams} />
+          <OverviewKpis sp={sp} />
         </Suspense>
         <div className="grid gap-4 xl:grid-cols-2">
           <Suspense fallback={<ChartSkeleton label="Loading production trend" />}>
-            <OverviewProductionChart sp={searchParams} />
+            <OverviewProductionChart sp={sp} />
           </Suspense>
           <Suspense fallback={<ChartSkeleton label="Loading availability trend" />}>
-            <OverviewAvailabilityChart sp={searchParams} />
+            <OverviewAvailabilityChart sp={sp} />
           </Suspense>
         </div>
         <Suspense fallback={<ChartSkeleton label="Loading availability heatmap" height={180} />}>
-          <OverviewHeatmap sp={searchParams} />
+          <OverviewHeatmap sp={sp} />
         </Suspense>
         <Suspense fallback={<TableSkeleton rows={5} />}>
           <OverviewAlerts />
@@ -42,9 +54,8 @@ export default function OverviewPage({ searchParams }: { searchParams: SearchPar
   )
 }
 
-type SP = SearchParams
-
 async function OverviewHeader({ sp }: { sp: SP }) {
+  await connection()
   const f = filterFromSearchParams(await sp)
   const site = f.siteId !== null ? (await listSites()).find((s) => s.id === f.siteId) : null
   return (

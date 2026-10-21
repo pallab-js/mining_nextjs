@@ -56,10 +56,22 @@ Methodology: spec-kit style (*specify → plan → tasks → implement*); artifa
 - [x] Filters (`site`, `range`) wired via URL → every page honours them
 
 ### M7 — Mutations (control layer)
-- [ ] Server Actions per module with Zod + `refresh()` + `ActionResult` contract
-- [ ] Record forms (create site/production/event/incident/reading/stockpile/shipment)
-- [ ] Fleet status control, incident close
-- [ ] Alert-rule CRUD (settings)
+- [x] Server Actions per module with Zod + `refresh()` + `ActionResult` contract
+- [x] Record forms (create site/production/event/incident/reading/stockpile/shipment)
+- [x] Fleet status control, incident close
+- [x] Alert-rule CRUD (settings)
+
+Details: 13 actions in `src/lib/actions/*.ts` (`createSite`, `updateSite`,
+`createProduction`, `createEquipment`, `createEquipmentEvent`, `setEquipmentStatus`,
+`createIncident`, `closeIncident`, `createEnvReading`, `createStockpile`,
+`createShipment`, `createRule`, `toggleRule`, `deleteRule`); every action wraps
+its body in `attempt()` so it returns `ActionResult` instead of throwing.
+One serialisable form spec (`src/lib/field-specs.ts` → `FieldSpec[]`) drives a
+single client `ActionForm` + `FormDialog`; no functions cross the RSC boundary
+except the server actions themselves. Manual records upsert on their natural key
+and report "updated" vs "added". Verified end-to-end over HTTP by
+`scripts/e2e-actions.sh` (18/18 checks: writes, validation rejections, unknown
+references, duplicate-code rejection).
 
 ### M8 — CSV import & settings
 - [ ] `/import` wizard: entity → file → validation report → commit + batch history

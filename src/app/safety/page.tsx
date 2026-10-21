@@ -1,5 +1,6 @@
 /** Safety (HSE) — KPIs, severity/type charts, incident list. */
 import { Suspense } from 'react'
+import { connection } from 'next/server'
 import { ShieldCheck } from 'lucide-react'
 import { PageHeader } from '@/components/page-header'
 import { KpiTile } from '@/components/ui/kpi-tile'
@@ -10,6 +11,11 @@ import { DataTable, type Column } from '@/components/ui/data-table'
 import { viewRows } from '@/lib/view-rows'
 import { EmptyState } from '@/components/ui/empty-state'
 import { BarTrend, PALETTE } from '@/components/charts'
+import { ActionForm } from '@/components/forms/action-form'
+import { FormDialog } from '@/components/forms/form-dialog'
+import { OpenIncidentList } from '@/components/forms/open-incidents'
+import { createIncident } from '@/lib/actions/safety'
+import { incidentFields } from '@/lib/field-specs'
 import { filterFromSearchParams, rangeLabel } from '@/lib/filter'
 import {
   getIncidentsByMonth,
@@ -17,6 +23,7 @@ import {
   getSafetyTotals,
   listIncidents,
 } from '@/lib/queries/safety'
+import { getSiteOptions } from '@/lib/queries/sites'
 import { fmtDay, fmtInt } from '@/lib/format'
 import type { SearchParams } from '@/lib/web'
 
@@ -34,10 +41,29 @@ export default function SafetyPage({ searchParams }: { searchParams: SearchParam
 }
 
 async function SafetyContent({ sp }: { sp: SearchParams }) {
+  await connection()
   const f = filterFromSearchParams(await sp)
+  const sites = await getSiteOptions()
+  const scopedSite = sites.find((s) => s.id === f.siteId)?.code
   return (
     <>
-      <PageHeader title="Safety (HSE)" subtitle={`${rangeLabel(f)} · ${f.from} → ${f.to}`} />
+      <PageHeader
+        title="Safety (HSE)"
+        subtitle={`${rangeLabel(f)} · ${f.from} → ${f.to}`}
+        actions={
+          <FormDialog
+            label="＋ Log incident"
+            title="Log incident"
+            description="Record an injury, near miss, spill or event."
+          >
+            <ActionForm
+              action={createIncident}
+              fields={incidentFields(sites, scopedSite)}
+              submitLabel="Log incident"
+            />
+          </FormDialog>
+        }
+      />
       <div className="space-y-4">
         <Suspense fallback={<KpiSkeletons count={6} />}>
           <SafetyKpis sp={sp} />
@@ -52,6 +78,9 @@ async function SafetyContent({ sp }: { sp: SearchParams }) {
             <IncidentTypes sp={sp} />
           </Suspense>
         </div>
+        <Suspense fallback={<TableSkeleton rows={5} />}>
+          <OpenIncidentsPanel sp={sp} />
+        </Suspense>
         <Suspense fallback={<TableSkeleton rows={8} />}>
           <IncidentList sp={sp} />
         </Suspense>
@@ -127,6 +156,27 @@ async function IncidentTypes({ sp }: { sp: SearchParams }) {
           height={Math.max(180, data.length * 30)}
         />
       )}
+    </Panel>
+  )
+}
+
+async function OpenIncidentsPanel({ sp }: { sp: SearchParams }) {
+  const f = filterFromSearchParams(await sp)
+  const open = await listIncidents(f, { status: 'open', limit: 25 })
+  if (open.length === 0) return null
+  return (
+    <Panel title="Open incidents" hint={`${open.length} awaiting action`} flush>
+      <OpenIncidentList
+        incidents={open.map((i) => ({
+          id: i.id,
+          site: i.site,
+          date: i.date,
+          type: i.type,
+          severity: i.severity,
+          description: i.description,
+          lostTimeDays: i.lostTimeDays,
+        }))}
+      />
     </Panel>
   )
 }

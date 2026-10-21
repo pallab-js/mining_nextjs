@@ -1,5 +1,6 @@
 /** Environment & tailings — water, energy, CO₂e, dam gauges, readings table. */
 import { Suspense } from 'react'
+import { connection } from 'next/server'
 import { Leaf } from 'lucide-react'
 import { PageHeader } from '@/components/page-header'
 import { KpiTile } from '@/components/ui/kpi-tile'
@@ -10,6 +11,10 @@ import { DataTable, type Column } from '@/components/ui/data-table'
 import { viewRows } from '@/lib/view-rows'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Gauge, PALETTE, TrendChart } from '@/components/charts'
+import { ActionForm } from '@/components/forms/action-form'
+import { FormDialog } from '@/components/forms/form-dialog'
+import { createEnvReading } from '@/lib/actions/environment'
+import { envReadingFields } from '@/lib/field-specs'
 import { filterFromSearchParams, parseFilter, previousPeriod, rangeLabel } from '@/lib/filter'
 import {
   getCo2eSeries,
@@ -18,6 +23,7 @@ import {
   getWaterSeries,
   listEnvReadings,
 } from '@/lib/queries/environment'
+import { getSiteOptions } from '@/lib/queries/sites'
 import { fmtCompact, fmtDay, fmtNum, fmtPct } from '@/lib/format'
 import type { SearchParams } from '@/lib/web'
 
@@ -28,10 +34,29 @@ export default function EnvironmentPage({ searchParams }: { searchParams: Search
 }
 
 async function EnvironmentContent({ sp }: { sp: SearchParams }) {
+  await connection()
   const f = filterFromSearchParams(await sp)
+  const sites = await getSiteOptions()
+  const scopedSite = sites.find((s) => s.id === f.siteId)?.code
   return (
     <>
-      <PageHeader title="Environment & Tailings" subtitle={`${rangeLabel(f)} · ${f.from} → ${f.to}`} />
+      <PageHeader
+        title="Environment & Tailings"
+        subtitle={`${rangeLabel(f)} · ${f.from} → ${f.to}`}
+        actions={
+          <FormDialog
+            label="＋ Add reading"
+            title="Add environmental reading"
+            description="Water, energy, CO₂e and tailings level for one site on one day."
+          >
+            <ActionForm
+              action={createEnvReading}
+              fields={envReadingFields(sites, scopedSite)}
+              submitLabel="Save reading"
+            />
+          </FormDialog>
+        }
+      />
       <div className="space-y-4">
         <Suspense fallback={<KpiSkeletons count={6} />}>
           <EnvKpis sp={sp} />
