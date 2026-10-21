@@ -223,8 +223,14 @@ ever hosted behind a proxy.
   after reading rather than trusting the client-reported `file.size`.
 - **Dependencies**: `npm audit --omit=dev` reports **0** vulnerabilities. The 5
   high-severity advisories are dev-only (`braces → micromatch → fast-glob →
-  @next/eslint-plugin-next`), unreachable at runtime; the "fix" is a breaking
-  downgrade, so it is tracked rather than applied.
+  @next/eslint-plugin-next → eslint-config-next`, a `devDependency`); grep of
+  `.next/static` and `.next/server` confirms none of them reach the production
+  bundle, and they never parse untrusted input. No fix exists:
+  `GHSA-vfj7-8cjw-p6xm` lists `braces <= 3.0.3` with `patched_versions: None`
+  (3.0.3 is the latest published release), so an `overrides` pin has nothing to
+  point at. npm's only suggestion is `eslint-config-next@14.2.35`, which requires
+  `eslint ^7 || ^8` — i.e. it would drag the project back off ESLint 9 and two
+  Next majors. Track upstream and revisit; do not downgrade.
 
 ## 11. Risks & mitigations
 
