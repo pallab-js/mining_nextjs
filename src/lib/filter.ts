@@ -54,6 +54,5 @@ export function previousPeriod(f: Filter): Filter {
 }
 
 export function rangeLabel(f: Filter): string {
-  const days = RANGE_PRESETS[f.range]
-  return `last ${days} day${days === 1 ? '' : 's'}`
+  return `last ${RANGE_PRESETS[f.range]} days`
 }

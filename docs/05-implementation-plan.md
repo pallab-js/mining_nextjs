@@ -20,24 +20,24 @@ Methodology: spec-kit style (*specify → plan → tasks → implement*); artifa
 - [x] `docs/05-implementation-plan.md` — this file
 
 ### M2 — Data layer
-- [ ] `src/lib/db/`: connection singleton (WAL, FK pragma), `schema.ts` (Drizzle), `migrations.ts` (idempotent DDL)
-- [ ] `scripts/seed.ts` — deterministic PRNG, 4 sites, 40 units, 12 months, ~17 k rows
-- [ ] `scripts/reset.ts` — empty-database mode
-- [ ] npm scripts: `db:seed`, `db:reset`, `typecheck`, `test`
-- [ ] Smoke: seed a fresh DB, verify counts via `sqlite3` CLI
+- [x] `src/lib/db/`: connection singleton (WAL, FK pragma), `schema.ts` (Drizzle), `migrations.ts` (idempotent DDL)
+- [x] `scripts/seed.ts` — deterministic PRNG, 5 sites, 50 units, 12 months, 13,180 rows
+- [x] `scripts/reset.ts` — empty-database mode
+- [x] npm scripts: `db:seed`, `db:reset`, `typecheck`, `test`
+- [x] Smoke: seed a fresh DB, verify counts via `sqlite3` CLI
 
 ### M3 — Domain logic (pure, test-backed)
-- [ ] `lib/filter.ts` — range presets → from/to, site param parsing
-- [ ] `lib/metrics.ts` — KPI formulas (weighted avg, availability, deltas, intensity)
-- [ ] `lib/alerts.ts` — rule evaluation (comparators, scope, null-safety)
-- [ ] `lib/validation.ts` — shared Zod schemas for all entities + CSV rows
-- [ ] `lib/csv.ts` — header mapping, row validation, site/equipment resolution
-- [ ] Vitest suites for metrics/alerts/csv — **green**
+- [x] `lib/filter.ts` — range presets → from/to, site param parsing
+- [x] `lib/metrics.ts` — KPI formulas (weighted avg, availability, deltas, intensity)
+- [x] `lib/alerts.ts` — rule evaluation (comparators, scope, null-safety)
+- [x] `lib/validation.ts` — shared Zod schemas for all entities + CSV rows
+- [x] `lib/csv.ts` — header mapping, row validation, site/equipment resolution
+- [x] Vitest suites for metrics/alerts/csv — **green** (42/42)
 
 ### M4 — Query layer
-- [ ] `lib/queries/`: sites, production, equipment, safety, environment, inventory, alerts, meta
-- [ ] Every fn: `await connection()`, filter-aware, returns plain serialisable objects
-- [ ] Aggregate SQL: series (day/week/month buckets), Pareto, heatmap matrices, KPI rollups
+- [x] `lib/queries/`: sites, production, equipment, safety, environment, inventory, metrics, alerts, meta
+- [x] Every fn: `await connection()`, filter-aware, returns plain serialisable objects
+- [x] Aggregate SQL: series (day/week/month buckets), Pareto, heatmap matrices, KPI rollups
 
 ### M5 — Shell & design system
 - [ ] `globals.css` tokens (canvas/panel/line/ink/signals), Geist fonts, base utilities

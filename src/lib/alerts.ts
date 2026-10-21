@@ -47,6 +47,11 @@ export function compare(value: number, comparator: Comparator, threshold: number
 
 const SEVERITY_RANK: Record<Severity, number> = { critical: 0, high: 1, medium: 2, low: 3 }
 
+/** Sort a mixed list of alerts by severity (critical first). */
+export function sortAlerts(alerts: ActiveAlert[]): ActiveAlert[] {
+  return [...alerts].sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity])
+}
+
 /** Rules fire only when active AND the metric resolved to a number. */
 export function evaluateAlerts(
   metrics: Partial<Record<MetricKey, number | null>>,
