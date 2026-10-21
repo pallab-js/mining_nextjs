@@ -87,9 +87,14 @@ accounting, reserves/resource estimation, workflow approvals, i18n, mobile-nativ
   settings page manages rules (create/toggle/delete).
 
 ### FR-Settings
-- **F-SET-1** Reseed demo database (destructive, confirmed) and reset to empty.
-- **F-SET-2** Full JSON export of the database (route handler download).
-- **F-SET-3** Import history (batches with counts + row errors).
+- **F-SET-1** Reseed demo database and reset to empty — both destructive, both gated
+  behind a typed confirmation word (`RESEED` / `RESET`) re-checked server-side.
+- **F-SET-2** Full JSON export of every table (route handler download, `no-store`,
+  attachment filename dated on the export day).
+- **F-SET-3** Import history (batches with counts + row errors) on `/import`, plus a
+  diagnostics panel on `/settings` showing data freshness, the last batch and rule count.
+- **F-SET-4** CSV import wizard: entity picker, client-generated template download,
+  file upload or paste, dry-run validation report (line/column/message), then commit.
 
 ### FR-Dashboard (overview)
 - **F-DSH-1** KPI tiles for the selected range & site filter: ore tonnes, concentrate, avg head
