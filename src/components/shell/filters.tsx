@@ -40,13 +40,13 @@ export function SiteSelect({ sites }: { sites: SiteOption[] }) {
   )
 
   return (
-    <label className="focus-ring flex items-center gap-1.5 rounded-md border border-line bg-panel px-2 py-1 text-[12px]">
-      <MapPin className="size-3.5 text-ink-dim" aria-hidden />
+    <label className="focus-ring flex items-center gap-1.5 rounded-md border border-line bg-panel px-3 py-2 text-[12px] min-h-[44px]">
+      <MapPin className="size-4 text-ink-dim shrink-0" aria-hidden />
       <span className="sr-only">Site filter</span>
       <select
         value={current}
         onChange={(e) => onChange(e.target.value)}
-        className="focus-ring cursor-pointer bg-transparent text-ink outline-none"
+        className="focus-ring cursor-pointer bg-transparent text-ink outline-none flex-1 min-w-0"
       >
         <option value="all">All sites</option>
         {sites.map((s) => (
@@ -76,13 +76,13 @@ export function RangeSelect() {
   )
 
   return (
-    <label className="focus-ring flex items-center gap-1.5 rounded-md border border-line bg-panel px-2 py-1 text-[12px]">
-      <CalendarDays className="size-3.5 text-ink-dim" aria-hidden />
+    <label className="focus-ring flex items-center gap-1.5 rounded-md border border-line bg-panel px-3 py-2 text-[12px] min-h-[44px]">
+      <CalendarDays className="size-4 text-ink-dim shrink-0" aria-hidden />
       <span className="sr-only">Date range</span>
       <select
         value={current}
         onChange={(e) => onChange(e.target.value)}
-        className="focus-ring cursor-pointer bg-transparent text-ink outline-none"
+        className="focus-ring cursor-pointer bg-transparent text-ink outline-none flex-1 min-w-0"
       >
         {(Object.keys(RANGE_LABELS) as RangeKey[]).map((k) => (
           <option key={k} value={k}>

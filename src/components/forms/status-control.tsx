@@ -10,7 +10,7 @@ import { EQUIPMENT_STATUSES } from '@/lib/enums'
 import { enumOptions } from '@/lib/forms'
 
 const inputClass =
-  'w-full rounded-md border border-line bg-canvas px-2.5 py-1.5 text-[12.5px] text-ink outline-none focus:ring-1 focus:ring-signal/40'
+  'w-full rounded-md border border-line bg-canvas px-3 py-2 text-[12.5px] text-ink outline-none focus:ring-1 focus:ring-signal/40 min-h-[44px]'
 
 export interface StatusUnit {
   id: number
@@ -82,7 +82,7 @@ export function StatusControl({ units }: { units: StatusUnit[] }) {
       </div>
       {msg && (
         <p
-          className={`rounded-md border px-2.5 py-1.5 text-[11px] ${
+          className={`rounded-md border px-3 py-2 text-[11px] ${
             msg.ok
               ? 'border-good/40 bg-good/10 text-good'
               : 'border-bad/40 bg-bad/10 text-bad'
@@ -96,7 +96,7 @@ export function StatusControl({ units }: { units: StatusUnit[] }) {
           type="button"
           onClick={apply}
           disabled={pending}
-          className="focus-ring rounded-md border border-line bg-panel px-3 py-1.5 text-[12px] hover:border-ink-dim/50 disabled:opacity-50"
+          className="focus-ring rounded-md border border-line bg-panel px-4 py-2 text-[12px] hover:border-ink-dim/50 disabled:opacity-50 min-h-[44px]"
         >
           {pending ? 'Applying…' : 'Apply status'}
         </button>

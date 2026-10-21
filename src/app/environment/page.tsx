@@ -116,7 +116,7 @@ async function TailingsPanel() {
   return (
     <Panel title="Tailings dam levels" hint="latest reading per site · threshold 80%">
       {tailings.length === 0 ? (
-        <EmptyState compact icon={<Leaf className="size-6" />} title="No tailings readings" description="Seed or import environment readings to monitor dam levels." />
+        <EmptyState compact icon={<Leaf className="size-6" />} title="No tailings readings" description="Seed or import environment readings to monitor dam levels." href="/import" />
       ) : (
         <div className="grid gap-x-8 gap-y-1 md:grid-cols-2">
           {tailings.map((t) => (
@@ -178,13 +178,13 @@ async function ReadingsPanel({ sp }: { sp: SearchParams }) {
     tailTone: r.tailingsLevel >= 80 ? ('bad' as const) : r.tailingsLevel >= 72 ? ('warn' as const) : ('good' as const),
   }))
   const columns: Column[] = [
-    { key: 'date', header: 'Date', kind: 'mono' },
-    { key: 'site', header: 'Site', kind: 'mono' },
-    { key: 'waterWithdrawal', header: 'Water (m³)', align: 'right', kind: 'num', fmt: 'compact2' },
-    { key: 'waterRecycled', header: 'Recycled %', align: 'right', kind: 'num', fmt: 'pct1' },
-    { key: 'energy', header: 'Energy (MWh)', align: 'right', kind: 'num', fmt: 'compact2' },
-    { key: 'co2e', header: 'CO₂e (t)', align: 'right', kind: 'num', fmt: 'compact2' },
-    { key: 'tailingsLevel', header: 'Tailings %', align: 'right', kind: 'num', fmt: 'num1', toneField: 'tailTone' },
+    { key: 'date', header: 'Date', kind: 'mono', priority: 'critical' },
+    { key: 'site', header: 'Site', kind: 'mono', priority: 'critical' },
+    { key: 'tailingsLevel', header: 'Tailings %', align: 'right', kind: 'num', fmt: 'num1', toneField: 'tailTone', priority: 'critical' },
+    { key: 'waterWithdrawal', header: 'Water (m³)', align: 'right', kind: 'num', fmt: 'compact2', priority: 'high' },
+    { key: 'waterRecycled', header: 'Recycled %', align: 'right', kind: 'num', fmt: 'pct1', priority: 'high' },
+    { key: 'energy', header: 'Energy (MWh)', align: 'right', kind: 'num', fmt: 'compact2', priority: 'medium' },
+    { key: 'co2e', header: 'CO₂e (t)', align: 'right', kind: 'num', fmt: 'compact2', priority: 'medium' },
   ]
   return (
     <div>
@@ -197,7 +197,7 @@ async function ReadingsPanel({ sp }: { sp: SearchParams }) {
         rows={viewRows(view)}
         pageSize={20}
         dense
-        emptyState={<EmptyState compact title="No readings in range" />}
+        emptyState={<EmptyState compact title="No readings in range" href="/import" />}
       />
     </div>
   )

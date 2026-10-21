@@ -117,7 +117,7 @@ async function StockpileMix({ sp }: { sp: SearchParams }) {
   return (
     <Panel title="Stockpile mix" hint="tonnes by product">
       {mix.length === 0 ? (
-        <EmptyState compact icon={<Boxes className="size-6" />} title="No stockpiles" description="Seed or import stockpile records." />
+        <EmptyState compact icon={<Boxes className="size-6" />} title="No stockpiles" description="Seed or import stockpile records." href="/import" />
       ) : (
         <Donut
           data={mix.map((m, i) => ({ name: m.product, value: m.tonnes, color: PRODUCT_COLORS[i % PRODUCT_COLORS.length] }))}
@@ -133,11 +133,11 @@ async function StockpileTable({ sp }: { sp: SearchParams }) {
   const f = filterFromSearchParams(await sp)
   const rows = await listStockpiles(f)
   const columns: Column[] = [
-    { key: 'site', header: 'Site', kind: 'mono' },
-    { key: 'product', header: 'Product' },
-    { key: 'gradePct', header: 'Grade %', align: 'right', kind: 'num', fmt: 'num2' },
-    { key: 'tonnes', header: 'Tonnes', align: 'right', kind: 'num', fmt: 'int' },
-    { key: 'updatedAt', header: 'Updated', align: 'right', kind: 'date' },
+    { key: 'site', header: 'Site', kind: 'mono', priority: 'critical' },
+    { key: 'product', header: 'Product', priority: 'critical' },
+    { key: 'tonnes', header: 'Tonnes', align: 'right', kind: 'num', fmt: 'int', priority: 'high' },
+    { key: 'gradePct', header: 'Grade %', align: 'right', kind: 'num', fmt: 'num2', priority: 'medium' },
+    { key: 'updatedAt', header: 'Updated', align: 'right', kind: 'date', priority: 'low' },
   ]
   return (
     <div>
@@ -145,7 +145,7 @@ async function StockpileTable({ sp }: { sp: SearchParams }) {
         <h2 className="text-[13px] font-medium">Stockpiles</h2>
         <span className="text-[11px] text-ink-dim">{rows.length} records</span>
       </div>
-      <DataTable columns={columns} rows={viewRows(rows)} pageSize={10} dense emptyState={<EmptyState compact title="No stockpiles" />} />
+      <DataTable columns={columns} rows={viewRows(rows)} pageSize={10} dense emptyState={<EmptyState compact title="No stockpiles" href="/import" />} />
     </div>
   )
 }
@@ -154,15 +154,15 @@ async function ShipmentTable({ sp }: { sp: SearchParams }) {
   const f = filterFromSearchParams(await sp)
   const rows = await listShipments(f, 100)
   const columns: Column[] = [
-    { key: 'site', header: 'Site', kind: 'mono' },
-    { key: 'product', header: 'Product' },
-    { key: 'tonnes', header: 'Tonnes', align: 'right', kind: 'num', fmt: 'int' },
-    { key: 'destination', header: 'Destination' },
-    { key: 'customer', header: 'Customer', kind: 'dim' },
-    { key: 'status', header: 'Status', kind: 'badge', toneKind: 'shipment' },
-    { key: 'eta', header: 'ETA', align: 'right', kind: 'mono' },
-    { key: 'shippedDate', header: 'Shipped', align: 'right', kind: 'date' },
-    { key: 'priceUsdPerT', header: 'US$/t', align: 'right', kind: 'num', fmt: 'int' },
+    { key: 'site', header: 'Site', kind: 'mono', priority: 'critical' },
+    { key: 'product', header: 'Product', priority: 'critical' },
+    { key: 'status', header: 'Status', kind: 'badge', toneKind: 'shipment', priority: 'critical' },
+    { key: 'tonnes', header: 'Tonnes', align: 'right', kind: 'num', fmt: 'int', priority: 'high' },
+    { key: 'destination', header: 'Destination', priority: 'high' },
+    { key: 'shippedDate', header: 'Shipped', align: 'right', kind: 'date', priority: 'medium' },
+    { key: 'eta', header: 'ETA', align: 'right', kind: 'mono', priority: 'medium' },
+    { key: 'customer', header: 'Customer', kind: 'dim', priority: 'low' },
+    { key: 'priceUsdPerT', header: 'US$/t', align: 'right', kind: 'num', fmt: 'int', priority: 'low' },
   ]
   return (
     <div>
@@ -170,7 +170,7 @@ async function ShipmentTable({ sp }: { sp: SearchParams }) {
         <h2 className="text-[13px] font-medium">Shipments</h2>
         <span className="text-[11px] text-ink-dim">{rows.length} shipments</span>
       </div>
-      <DataTable columns={columns} rows={viewRows(rows)} pageSize={15} dense emptyState={<EmptyState compact title="No shipments in range" />} />
+      <DataTable columns={columns} rows={viewRows(rows)} pageSize={15} dense emptyState={<EmptyState compact title="No shipments in range" href="/import" />} />
     </div>
   )
 }

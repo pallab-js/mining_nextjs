@@ -10,10 +10,20 @@ const DOT: Record<DotTone, string> = {
   idle: 'bg-ink-dim/40',
 }
 
-export function StatusDot({ tone, pulse = false }: { tone: DotTone; pulse?: boolean }) {
+const TONE_LABEL: Record<DotTone, string> = {
+  good: 'Healthy',
+  warn: 'Degraded',
+  bad: 'Critical',
+  idle: 'Idle',
+}
+
+export function StatusDot({ tone, pulse = false, title, className = '' }: { tone: DotTone; pulse?: boolean; title?: string; className?: string }) {
   return (
     <span
-      className={`inline-block size-2 shrink-0 rounded-full ${DOT[tone]} ${pulse ? 'animate-pulse' : ''}`}
+      className={`inline-block size-2 shrink-0 rounded-full ${DOT[tone]} ${pulse ? 'animate-pulse' : ''} ${className}`}
+      title={title ?? TONE_LABEL[tone]}
+      role="status"
+      aria-label={title ?? TONE_LABEL[tone]}
     />
   )
 }
@@ -37,6 +47,7 @@ export function Badge({
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded border px-1.5 py-0.5 text-[10px] font-medium tracking-wide uppercase ${BADGE[tone]} ${className}`}
+      title={TONE_LABEL[tone]}
     >
       {children}
     </span>

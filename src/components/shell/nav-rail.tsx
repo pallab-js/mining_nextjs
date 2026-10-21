@@ -49,13 +49,13 @@ export function NavRail() {
             key={href}
             href={href}
             aria-current={active ? 'page' : undefined}
-            className={`focus-ring flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[12.5px] whitespace-nowrap transition-colors ${
+            className={`focus-ring flex items-center gap-2.5 rounded-md px-3 py-2.5 text-[12.5px] whitespace-nowrap transition-colors min-h-[44px] ${
               active
                 ? 'bg-panel text-ink shadow-[inset_2px_0_0_var(--color-signal)]'
                 : 'text-ink-dim hover:bg-panel hover:text-ink'
             }`}
           >
-            <Icon className={`size-4 ${active ? 'text-signal' : ''}`} />
+            <Icon className={`size-5 ${active ? 'text-signal' : ''}`} />
             {label}
           </Link>
         )

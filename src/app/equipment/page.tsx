@@ -145,7 +145,7 @@ async function StatusBoard({ sp }: { sp: SearchParams }) {
   return (
     <Panel title="Fleet status board" hint={`${counts.total} units`}>
       {counts.total === 0 ? (
-        <EmptyState compact title="No equipment" description="Seed or import equipment to see the status board." />
+        <EmptyState compact title="No equipment" description="Seed or import equipment to see the status board." href="/import" />
       ) : (
         <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
           {chips.map((c) => (
@@ -172,7 +172,7 @@ async function StatusControlPanel({ sp }: { sp: SearchParams }) {
   return (
     <Panel title="Unit status control" hint="set a unit's live status">
       {roster.length === 0 ? (
-        <EmptyState compact title="No equipment" description="Seed or import a fleet first." />
+        <EmptyState compact title="No equipment" description="Seed or import a fleet first." href="/import" />
       ) : (
         <StatusControl
           units={roster.map((r) => ({ id: r.id, code: r.code, name: r.name, status: r.status }))}
@@ -250,15 +250,15 @@ async function RosterPanel({ sp }: { sp: SearchParams }) {
       r.availability === null ? 'idle' : r.availability < 85 ? ('warn' as const) : ('good' as const),
   }))
   const columns: Column[] = [
-    { key: 'unit', header: 'Unit', kind: 'mono' },
-    { key: 'type', header: 'Type' },
-    { key: 'status', header: 'Status', kind: 'dot', toneKind: 'equipment' },
-    { key: 'site', header: 'Site', kind: 'mono' },
-    { key: 'running', header: 'Running (h)', align: 'right', kind: 'num', fmt: 'int' },
-    { key: 'downtime', header: 'Down (h)', align: 'right', kind: 'num', fmt: 'int' },
-    { key: 'availability', header: 'Avail %', align: 'right', kind: 'num', fmt: 'pct1', toneField: 'availTone' },
-    { key: 'fuel', header: 'Fuel (L)', align: 'right', kind: 'num', fmt: 'int' },
-    { key: 'lastEvent', header: 'Last event', align: 'right', kind: 'date' },
+    { key: 'unit', header: 'Unit', kind: 'mono', priority: 'critical' },
+    { key: 'status', header: 'Status', kind: 'dot', toneKind: 'equipment', priority: 'critical' },
+    { key: 'type', header: 'Type', priority: 'high' },
+    { key: 'site', header: 'Site', kind: 'mono', priority: 'high' },
+    { key: 'availability', header: 'Avail %', align: 'right', kind: 'num', fmt: 'pct1', toneField: 'availTone', priority: 'high' },
+    { key: 'running', header: 'Running (h)', align: 'right', kind: 'num', fmt: 'int', priority: 'medium' },
+    { key: 'downtime', header: 'Down (h)', align: 'right', kind: 'num', fmt: 'int', priority: 'medium' },
+    { key: 'fuel', header: 'Fuel (L)', align: 'right', kind: 'num', fmt: 'int', priority: 'low' },
+    { key: 'lastEvent', header: 'Last event', align: 'right', kind: 'date', priority: 'low' },
   ]
   return (
     <div>
@@ -271,7 +271,7 @@ async function RosterPanel({ sp }: { sp: SearchParams }) {
         rows={viewRows(rows)}
         pageSize={25}
         dense
-        emptyState={<EmptyState compact title="No equipment" description="Seed or import a fleet to populate the roster." />}
+        emptyState={<EmptyState compact title="No equipment" description="Seed or import a fleet to populate the roster." href="/import" />}
       />
     </div>
   )

@@ -46,18 +46,18 @@ export function ToastHost() {
           }`}
         >
           {t.tone === 'good' ? (
-            <CheckCircle2 className="mt-px size-3.5 shrink-0" />
+            <CheckCircle2 className="mt-px size-4 shrink-0" />
           ) : (
-            <AlertTriangle className="mt-px size-3.5 shrink-0" />
+            <AlertTriangle className="mt-px size-4 shrink-0" />
           )}
           <span className="flex-1">{t.text}</span>
           <button
             type="button"
             aria-label="Dismiss"
             onClick={() => setToasts((all) => all.filter((x) => x.id !== t.id))}
-            className="opacity-70 hover:opacity-100"
+            className="shrink-0 opacity-70 hover:opacity-100 p-1 min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
-            <X className="size-3.5" />
+            <X className="size-4" />
           </button>
         </div>
       ))}

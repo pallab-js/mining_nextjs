@@ -121,7 +121,7 @@ async function IncidentTrend({ sp }: { sp: SearchParams }) {
   return (
     <Panel title="Incidents by month" hint="stacked by severity">
       {data.length === 0 ? (
-        <EmptyState compact icon={<ShieldCheck className="size-6" />} title="No incidents in range" />
+        <EmptyState compact icon={<ShieldCheck className="size-6" />} title="No incidents in range" href="/import" />
       ) : (
         <BarTrend
           data={data}
@@ -146,7 +146,7 @@ async function IncidentTypes({ sp }: { sp: SearchParams }) {
   return (
     <Panel title="By type" hint={rangeLabel(f)}>
       {data.length === 0 ? (
-        <EmptyState compact title="No incidents in range" />
+        <EmptyState compact title="No incidents in range" href="/import" />
       ) : (
         <BarTrend
           data={data}
@@ -185,14 +185,14 @@ async function IncidentList({ sp }: { sp: SearchParams }) {
   const f = filterFromSearchParams(await sp)
   const rows = await listIncidents(f, { limit: 100 })
   const columns: Column[] = [
-    { key: 'date', header: 'Date', kind: 'mono' },
-    { key: 'site', header: 'Site', kind: 'mono' },
-    { key: 'type', header: 'Type' },
-    { key: 'severity', header: 'Severity', kind: 'badge', toneKind: 'severity', sortable: false },
-    { key: 'description', header: 'Description', kind: 'dim', sortable: false },
-    { key: 'lostTimeDays', header: 'LTI days', align: 'right', kind: 'num', fmt: 'int' },
-    { key: 'reportedBy', header: 'Reported by', kind: 'dim' },
-    { key: 'status', header: 'Status', kind: 'badge', toneKind: 'incident' },
+    { key: 'date', header: 'Date', kind: 'mono', priority: 'critical' },
+    { key: 'severity', header: 'Severity', kind: 'badge', toneKind: 'severity', sortable: false, priority: 'critical' },
+    { key: 'site', header: 'Site', kind: 'mono', priority: 'high' },
+    { key: 'type', header: 'Type', priority: 'high' },
+    { key: 'status', header: 'Status', kind: 'badge', toneKind: 'incident', priority: 'medium' },
+    { key: 'lostTimeDays', header: 'LTI days', align: 'right', kind: 'num', fmt: 'int', priority: 'medium' },
+    { key: 'description', header: 'Description', kind: 'dim', sortable: false, priority: 'low' },
+    { key: 'reportedBy', header: 'Reported by', kind: 'dim', priority: 'low' },
   ]
   return (
     <div>
@@ -211,6 +211,7 @@ async function IncidentList({ sp }: { sp: SearchParams }) {
             icon={<ShieldCheck className="size-6" />}
             title="No incidents in range"
             description="A clean register — widen the range or import historical records."
+            href="/import"
           />
         }
       />

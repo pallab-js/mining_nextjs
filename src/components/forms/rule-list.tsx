@@ -77,7 +77,7 @@ export function RuleList({ rules }: { rules: RuleItem[] }) {
                 type="button"
                 onClick={() => run(r.id, toggleRule)}
                 disabled={pendingId === r.id}
-                className="focus-ring rounded-md border border-line bg-panel px-2 py-1 text-[11px] hover:border-ink-dim/50 disabled:opacity-50"
+                className="focus-ring rounded-md border border-line bg-panel px-3 py-1.5 text-[11px] hover:border-ink-dim/50 disabled:opacity-50 min-h-[44px]"
               >
                 {r.active ? 'Disable' : 'Enable'}
               </button>
@@ -85,7 +85,7 @@ export function RuleList({ rules }: { rules: RuleItem[] }) {
                 type="button"
                 onClick={() => remove(r.id, r.name)}
                 disabled={pendingId === r.id}
-                className="focus-ring rounded-md border border-bad/40 bg-bad/10 px-2 py-1 text-[11px] text-bad hover:bg-bad/20 disabled:opacity-50"
+                className="focus-ring rounded-md border border-bad/40 bg-bad/10 px-3 py-1.5 text-[11px] text-bad hover:bg-bad/20 disabled:opacity-50 min-h-[44px]"
               >
                 Delete
               </button>

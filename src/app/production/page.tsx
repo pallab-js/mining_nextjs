@@ -177,7 +177,7 @@ async function MineralMixPanel({ sp }: { sp: SearchParams }) {
   return (
     <Panel title="Concentrate mix by mineral" hint={rangeLabel(f)}>
       {mix.length === 0 ? (
-        <EmptyState compact title="No concentrate in range" />
+        <EmptyState compact title="No concentrate in range" href="/import" />
       ) : (
         <Donut
           data={mix.map((m, i) => ({
@@ -197,13 +197,13 @@ async function MonthlyPanel({ sp }: { sp: SearchParams }) {
   const f = filterFromSearchParams(await sp)
   const rows = await getMonthlyTable(f)
   const columns: Column[] = [
-    { key: 'month', header: 'Month', kind: 'mono' },
-    { key: 'ore', header: 'Ore (t)', align: 'right', kind: 'num', fmt: 'compact2' },
-    { key: 'waste', header: 'Waste (t)', align: 'right', kind: 'num', fmt: 'compact2' },
-    { key: 'concentrate', header: 'Conc. (t)', align: 'right', kind: 'num', fmt: 'compact2' },
-    { key: 'grade', header: 'Grade %', align: 'right', kind: 'num', fmt: 'num2' },
-    { key: 'recovery', header: 'Recovery %', align: 'right', kind: 'num', fmt: 'pct1' },
-    { key: 'strip', header: 'Strip', align: 'right', kind: 'num', fmt: 'num2' },
+    { key: 'month', header: 'Month', kind: 'mono', priority: 'critical' },
+    { key: 'ore', header: 'Ore (t)', align: 'right', kind: 'num', fmt: 'compact2', priority: 'critical' },
+    { key: 'concentrate', header: 'Conc. (t)', align: 'right', kind: 'num', fmt: 'compact2', priority: 'high' },
+    { key: 'grade', header: 'Grade %', align: 'right', kind: 'num', fmt: 'num2', priority: 'high' },
+    { key: 'recovery', header: 'Recovery %', align: 'right', kind: 'num', fmt: 'pct1', priority: 'high' },
+    { key: 'waste', header: 'Waste (t)', align: 'right', kind: 'num', fmt: 'compact2', priority: 'medium' },
+    { key: 'strip', header: 'Strip', align: 'right', kind: 'num', fmt: 'num2', priority: 'low' },
   ]
   return (
     <div>
@@ -216,7 +216,7 @@ async function MonthlyPanel({ sp }: { sp: SearchParams }) {
         rows={viewRows(rows)}
         pageSize={12}
         dense
-        emptyState={<EmptyState compact title="No production in range" />}
+        emptyState={<EmptyState compact title="No production in range" href="/import" />}
       />
     </div>
   )

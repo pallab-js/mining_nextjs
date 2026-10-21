@@ -25,7 +25,7 @@ export function GranToggle({ current }: { current: Gran }) {
           type="button"
           onClick={() => set(g)}
           aria-pressed={g === current}
-          className={`focus-ring rounded px-2 py-0.5 text-[11px] capitalize transition-colors ${
+          className={`focus-ring rounded px-3 py-1.5 text-[11px] capitalize transition-colors min-h-[44px] min-w-[60px] ${
             g === current ? 'bg-panel-2 text-ink shadow-[inset_0_0_0_1px_var(--color-line)]' : 'text-ink-dim hover:text-ink'
           }`}
         >

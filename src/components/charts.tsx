@@ -60,13 +60,13 @@ function DarkTooltip({
 }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-md border border-line bg-panel/95 px-2.5 py-1.5 shadow-lg">
-      {label !== undefined && <div className="num mb-1 text-[10px] text-ink-dim">{label}</div>}
+    <div className="rounded-md border border-line bg-panel/95 px-3 py-2 shadow-lg max-w-[calc(100vw-2rem)] sm:max-w-none">
+      {label !== undefined && <div className="num mb-1.5 text-[10px] text-ink-dim">{label}</div>}
       {payload.map((e, i) => (
-        <div key={i} className="num flex items-center gap-1.5 text-[11px]">
-          <span className="size-1.5 rounded-full" style={{ background: e.color }} />
-          <span className="text-ink-dim">{e.name}</span>
-          <span className="ml-auto pl-2 text-ink">
+        <div key={i} className="num flex items-center gap-2 text-[11px] sm:text-[12px]">
+          <span className="size-2 rounded-full shrink-0" style={{ background: e.color }} />
+          <span className="text-ink-dim truncate max-w-[120px]">{e.name}</span>
+          <span className="ml-auto pl-2 text-ink whitespace-nowrap shrink-0">
             {format && typeof e.value === 'number' ? fmtWith(format, e.value) : String(e.value)}
           </span>
         </div>
@@ -95,6 +95,7 @@ export function TrendChart({
   height = 240,
   yFormat,
   reference,
+  responsive = true,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: readonly Record<string, any>[]
@@ -105,12 +106,16 @@ export function TrendChart({
   yFormat?: Fmt
   /** horizontal reference line, e.g. availability target */
   reference?: { y: number; label: string; color?: string }
+  /** use responsive height based on viewport (default: true) */
+  responsive?: boolean
 }) {
+  const { useChartHeight } = require('@/lib/responsive')
+  const responsiveHeight = responsive ? useChartHeight(height) : height
   const hasRight = series.some((s) => s.axis === 'right')
   const primary = series[0]?.format
   const Chart = series.every((s) => s.kind !== 'area') ? LineChart : ComposedChart
   return (
-    <ResponsiveContainer width="100%" height={height}>
+    <ResponsiveContainer width="100%" height={responsiveHeight}>
       <Chart data={data} margin={{ top: 6, right: hasRight ? 4 : 12, bottom: 0, left: -18 }}>
         <CartesianGrid stroke={PALETTE.line} strokeDasharray="2 4" vertical={false} />
         <XAxis dataKey={xKey} tick={AXIS} tickLine={false} axisLine={{ stroke: PALETTE.line }} />
@@ -194,6 +199,7 @@ export function BarTrend({
   height = 240,
   horizontal = false,
   yFormat,
+  responsive = true,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: readonly Record<string, any>[]
@@ -203,10 +209,14 @@ export function BarTrend({
   height?: number
   horizontal?: boolean
   yFormat?: Fmt
+  /** use responsive height based on viewport (default: true) */
+  responsive?: boolean
 }) {
+  const { useChartHeight } = require('@/lib/responsive')
+  const responsiveHeight = responsive ? useChartHeight(height) : height
   const barFormat = bars[0]?.format
   return (
-    <ResponsiveContainer width="100%" height={height}>
+    <ResponsiveContainer width="100%" height={responsiveHeight}>
       <BarChart
         data={data}
         layout={horizontal ? 'vertical' : undefined}
@@ -265,15 +275,20 @@ export function Donut({
   height = 220,
   centerLabel,
   centerValue,
+  responsive = true,
 }: {
   data: { name: string; value: number; color: string }[]
   height?: number
   centerLabel?: string
   centerValue?: string
+  /** use responsive height based on viewport (default: true) */
+  responsive?: boolean
 }) {
+  const { useChartHeight } = require('@/lib/responsive')
+  const responsiveHeight = responsive ? useChartHeight(height) : height
   return (
     <div className="relative">
-      <ResponsiveContainer width="100%" height={height}>
+      <ResponsiveContainer width="100%" height={responsiveHeight}>
         <PieChart>
           <Pie
             data={data}
@@ -382,16 +397,16 @@ export function Heatmap({
             </div>
           </div>
         ))}
-        <div className="mt-2 flex items-center gap-1.5 text-[10px] text-ink-dim">
-          <span>50%</span>
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] text-ink-dim sm:gap-1.5">
+          <span className="whitespace-nowrap">50%</span>
           <span
-            className="h-2 w-28 rounded-sm"
+            className="h-2 w-28 sm:w-40 rounded-sm flex-shrink-0"
             style={{
               background: 'linear-gradient(to right, hsl(0 72% 48% / 0.8), hsl(80 72% 48% / 0.5), hsl(160 72% 48% / 0.8))',
             }}
           />
-          <span>100%</span>
-          <span className="ml-2">grey = no data</span>
+          <span className="whitespace-nowrap">100%</span>
+          <span className="ml-2 sm:ml-1 whitespace-nowrap">grey = no data</span>
         </div>
       </div>
     </div>
@@ -434,14 +449,14 @@ export function Gauge({
           {value.toFixed(1)}%
         </span>
       </div>
-      <div className="relative h-2.5 overflow-hidden rounded-sm bg-panel-2 ring-1 ring-line">
+      <div className="relative h-2.5 overflow-hidden rounded-sm bg-panel-2 ring-1 ring-line" role="img" aria-label={`${label}: ${value.toFixed(1)}%, limit ${limit}%`}>
         <div className="h-full rounded-sm" style={{ width: `${pct}%`, background: color, opacity: 0.85 }} />
         <div
           className="absolute inset-y-0 w-px bg-ink/70"
           style={{ left: `${(limit / max) * 100}%` }}
-          title={`Limit ${limit}%`}
+          aria-label={`Limit ${limit}%`}
         >
-          <span className="num absolute -top-0.5 left-1 text-[8px] whitespace-nowrap text-ink-dim">
+          <span className="num absolute -top-5 left-0 text-[9px] whitespace-nowrap text-ink-dim bg-panel px-0.5 rounded">
             {limit}%
           </span>
         </div>

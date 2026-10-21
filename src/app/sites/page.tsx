@@ -37,14 +37,7 @@ export default async function SitesPage() {
             icon={<Mountain className="size-6" />}
             title="No sites yet"
             description="Seed demo data or import a sites CSV to get started."
-            action={
-              <a
-                href="/settings"
-                className="focus-ring rounded-md border border-line bg-panel-2 px-3 py-1.5 text-[12px] hover:text-ink"
-              >
-                Go to Settings
-              </a>
-            }
+            href="/import"
           />
         </div>
       ) : (

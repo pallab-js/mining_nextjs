@@ -16,6 +16,8 @@ export type { ViewRow }
 
 export type CellKind = 'text' | 'mono' | 'dim' | 'num' | 'date' | 'badge' | 'dot'
 
+export type ColumnPriority = 'critical' | 'high' | 'medium' | 'low'
+
 export interface Column {
   key: string
   header: string
@@ -29,6 +31,8 @@ export interface Column {
   toneField?: string
   width?: string
   sortable?: boolean
+  /** responsive priority: 'critical'=always, 'high'=sm+, 'medium'=md+, 'low'=lg+ */
+  priority?: ColumnPriority
 }
 
 const TONE_TEXT: Record<DotTone, string> = {
@@ -68,6 +72,20 @@ function CellView({ col, row }: { col: Column; row: ViewRow }) {
     default:
       return <span>{raw === null || raw === undefined ? '—' : String(raw)}</span>
   }
+}
+
+const PRIORITY_BREAKPOINT: Record<ColumnPriority, string> = {
+  critical: '',
+  high: 'hidden sm:table-cell',
+  medium: 'hidden md:table-cell',
+  low: 'hidden lg:table-cell',
+}
+
+const PRIORITY_BREAKPOINT_TH: Record<ColumnPriority, string> = {
+  critical: '',
+  high: 'hidden sm:table-cell',
+  medium: 'hidden md:table-cell',
+  low: 'hidden lg:table-cell',
 }
 
 export function DataTable({
@@ -129,11 +147,12 @@ export function DataTable({
             <tr className="border-b border-line">
               {columns.map((c) => {
                 const active = sortKey === c.key
+                const priority = c.priority ?? 'critical'
                 return (
                   <th
                     key={c.key}
                     style={c.width ? { width: c.width } : undefined}
-                    className={`${pad} ${c.align === 'right' ? 'text-right' : 'text-left'} select-none`}
+                    className={`${pad} ${c.align === 'right' ? 'text-right' : 'text-left'} select-none ${PRIORITY_BREAKPOINT_TH[priority]}`}
                   >
                     {c.sortable !== false ? (
                       <button
@@ -158,11 +177,14 @@ export function DataTable({
           <tbody>
             {visible.map((row, i) => (
               <tr key={(row.id as string | number) ?? i} className="border-b border-line/60 last:border-0 hover:bg-panel-2">
-                {columns.map((c) => (
-                  <td key={c.key} className={`${pad} ${c.align === 'right' ? 'text-right' : ''} text-ink`}>
-                    <CellView col={c} row={row} />
-                  </td>
-                ))}
+                {columns.map((c) => {
+                  const priority = c.priority ?? 'critical'
+                  return (
+                    <td key={c.key} className={`${pad} ${c.align === 'right' ? 'text-right' : ''} text-ink ${PRIORITY_BREAKPOINT[priority]}`}>
+                      <CellView col={c} row={row} />
+                    </td>
+                  )
+                })}
               </tr>
             ))}
           </tbody>
@@ -177,7 +199,7 @@ export function DataTable({
                 type="button"
                 disabled={safePage === 0}
                 onClick={() => setPage(safePage - 1)}
-                className="focus-ring rounded border border-line px-2 py-0.5 text-[11px] text-ink-dim hover:text-ink disabled:opacity-40"
+                className="focus-ring rounded border border-line px-3 py-1.5 text-[11px] text-ink-dim hover:text-ink disabled:opacity-40 min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 ←
               </button>
@@ -188,7 +210,7 @@ export function DataTable({
                 type="button"
                 disabled={safePage >= pageCount - 1}
                 onClick={() => setPage(safePage + 1)}
-                className="focus-ring rounded border border-line px-2 py-0.5 text-[11px] text-ink-dim hover:text-ink disabled:opacity-40"
+                className="focus-ring rounded border border-line px-3 py-1.5 text-[11px] text-ink-dim hover:text-ink disabled:opacity-40 min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 →
               </button>

@@ -13,7 +13,7 @@ import { toast } from '@/components/toast-host'
 import { useDialogClose } from './dialog-context'
 
 const inputClass =
-  'w-full rounded-md border border-line bg-canvas px-2.5 py-1.5 text-[12.5px] text-ink outline-none focus:ring-1 focus:ring-signal/40 placeholder:text-ink-dim/50'
+  'w-full rounded-md border border-line bg-canvas px-3 py-2 text-[12.5px] text-ink outline-none focus:ring-1 focus:ring-signal/40 placeholder:text-ink-dim/50 min-h-[44px]'
 const labelClass = 'mb-1 block text-[11px] text-ink-dim'
 
 export function ActionForm({
@@ -139,7 +139,7 @@ export function ActionForm({
         <button
           type="submit"
           disabled={pending}
-          className="focus-ring rounded-md border border-line bg-panel px-3 py-1.5 text-[12px] hover:border-ink-dim/50 disabled:opacity-50"
+          className="focus-ring rounded-md border border-line bg-panel px-4 py-2 text-[12px] hover:border-ink-dim/50 disabled:opacity-50 min-h-[44px]"
         >
           {pending ? 'Saving…' : submitLabel}
         </button>

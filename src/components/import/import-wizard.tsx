@@ -135,9 +135,9 @@ export function ImportWizard() {
           <button
             type="button"
             onClick={downloadTemplate}
-            className="focus-ring inline-flex items-center gap-1.5 rounded-md border border-line bg-panel px-2.5 py-1 text-[11.5px] hover:border-ink-dim/50"
+            className="focus-ring inline-flex items-center gap-1.5 rounded-md border border-line bg-panel px-3 py-1.5 text-[11.5px] hover:border-ink-dim/50 min-h-[44px]"
           >
-            <Download className="size-3.5" />
+            <Download className="size-4" />
             Download {entity.replace('_', ' ')} template
           </button>
         </div>
@@ -184,9 +184,9 @@ export function ImportWizard() {
             type="button"
             onClick={() => run('validate')}
             disabled={busy}
-            className="focus-ring inline-flex items-center gap-1.5 rounded-md border border-line bg-panel px-3 py-1.5 text-[12px] hover:border-ink-dim/50 disabled:opacity-50"
+            className="focus-ring inline-flex items-center gap-1.5 rounded-md border border-line bg-panel px-4 py-2 text-[12px] hover:border-ink-dim/50 disabled:opacity-50 min-h-[44px]"
           >
-            {pending ? <Loader2 className="size-3.5 animate-spin" /> : <FileUp className="size-3.5" />}
+            {pending ? <Loader2 className="size-4 animate-spin" /> : <FileUp className="size-4" />}
             {pending ? 'Validating…' : 'Validate'}
           </button>
         </div>
@@ -249,9 +249,9 @@ export function ImportWizard() {
               type="button"
               onClick={() => run('commit')}
               disabled={busy || !canCommit}
-              className="focus-ring inline-flex items-center gap-1.5 rounded-md border border-signal/50 bg-signal/15 px-3 py-1.5 text-[12px] text-ink hover:bg-signal/25 disabled:opacity-40"
+              className="focus-ring inline-flex items-center gap-1.5 rounded-md border border-signal/50 bg-signal/15 px-4 py-2 text-[12px] text-ink hover:bg-signal/25 disabled:opacity-40 min-h-[44px]"
             >
-              {committing ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
+              {committing ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
               {committing
                 ? 'Importing…'
                 : report?.committed

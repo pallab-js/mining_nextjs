@@ -25,6 +25,7 @@ import { getActiveAlerts } from '@/lib/queries/alerts'
 import { fmtCompact, fmtNum, fmtPct, fmtDay } from '@/lib/format'
 import { humanize, toneFor } from '@/lib/tones'
 import type { SearchParams, SiteParams } from '@/lib/web'
+import { Breadcrumbs } from '@/components/ui/breadcrumbs'
 
 export default function SiteDetailPage({
   params,
@@ -47,12 +48,10 @@ async function SiteDetail({ sp, idPromise }: { sp: SearchParams; idPromise: Site
 
   return (
     <>
-      <Link
-        href="/sites"
-        className="focus-ring mb-2 inline-flex items-center gap-1 rounded text-[11px] text-ink-dim hover:text-ink"
-      >
-        <ChevronLeft className="size-3" /> all sites
-      </Link>
+      <Breadcrumbs crumbs={[
+        { label: 'Sites', href: '/sites' },
+        { label: `${site.code} — ${site.name}` },
+      ]} />
       <PageHeader
         title={`${site.code} — ${site.name}`}
         subtitle={

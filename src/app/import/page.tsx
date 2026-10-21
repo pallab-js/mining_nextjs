@@ -45,12 +45,12 @@ interface BatchRow extends Record<string, unknown> {
 }
 
 const COLUMNS: Column[] = [
-  { key: 'id', header: '#', kind: 'mono', align: 'right', width: '56px' },
-  { key: 'entity', header: 'Entity', kind: 'text' },
-  { key: 'filename', header: 'File', kind: 'dim' },
-  { key: 'rowsOk', header: 'Imported', kind: 'num', fmt: 'int', align: 'right' },
-  { key: 'rowsFailed', header: 'Rejected', kind: 'num', fmt: 'int', align: 'right' },
-  { key: 'createdAt', header: 'When', kind: 'date' },
+  { key: 'id', header: '#', kind: 'mono', align: 'right', width: '56px', priority: 'critical' },
+  { key: 'entity', header: 'Entity', kind: 'text', priority: 'critical' },
+  { key: 'rowsOk', header: 'Imported', kind: 'num', fmt: 'int', align: 'right', priority: 'high' },
+  { key: 'rowsFailed', header: 'Rejected', kind: 'num', fmt: 'int', align: 'right', priority: 'high' },
+  { key: 'createdAt', header: 'When', kind: 'date', priority: 'medium' },
+  { key: 'filename', header: 'File', kind: 'dim', priority: 'low' },
 ]
 
 async function BatchHistory() {
