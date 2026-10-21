@@ -160,14 +160,19 @@ water recycled < 75 % · CO₂e intensity > 12 kg/t (each with severity).
 - **Unit (vitest)**: `metrics.test.ts` (weighted averages, deltas, guarded division),
   `alerts.test.ts` (comparators, scope, inactive rules, null metrics), `csv.test.ts`
   (header mapping, per-row errors, numeric coercion, site resolution).
-- **Static**: `eslint` (next/core-web-vitals + ts) and `tsc --noEmit` in CI-equivalent script.
+- **Static**: `eslint` (next/core-web-vitals + ts) and `next typegen && tsc --noEmit`.
+  `LayoutProps`/`PageProps` are globals emitted into `.next/types` by the typegen
+  step, so `typecheck` runs it first — without it `tsc` fails on a fresh clone,
+  where neither `.next` nor `next-env.d.ts` exists yet.
 - **Build**: `next build` must pass (prerender validation of Cache Components is itself a test).
 - **End-to-end (script)**: `scripts/e2e-actions.sh` drives every server action over
   HTTP against a running production server (MPA action encoding, `$ACTION_ID_<id>`
   multipart field, `--form-string` so values like `<` survive) and asserts the
   resulting database rows — 27 checks covering writes, upserts, Zod rejections,
   unknown references, duplicate keys, CSV import validate/commit/batch history and
-  the typed-confirm guards. Run with `npm run e2e:actions` against `next start`.
+  the typed-confirm guards. Run with `npm run e2e:actions` against `next start`;
+  `E2E_BASE` and `E2E_DB` retarget the server and database (scratch files follow
+  `E2E_TMP`), so the suite can run against any instance without edits.
 
 ## 9. Error handling contract
 

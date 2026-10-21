@@ -4,8 +4,11 @@
 # a multipart POST with a `$ACTION_ID_<id>` field.
 set -uo pipefail
 
-BASE="http://localhost:3457"
-DB="data/mining.db"
+BASE="${E2E_BASE:-http://localhost:3457}"
+DB="${E2E_DB:-data/mining.db}"
+# Scratch files are namespaced so parallel runs (different ports/DBs) never clash.
+TMP="${E2E_TMP:-/tmp/opencode}"
+mkdir -p "$TMP"
 
 pass=0
 fail=0
@@ -28,7 +31,7 @@ post() { # $1 = action name, $2 = path, rest = form fields
   if [ -z "$id" ]; then echo "NO-ID $name"; return 1; fi
   local args=()
   for f in "$@"; do args+=(--form-string "$f"); done
-  curl -s -o /tmp/opencode/e2e-last.html -w "%{http_code}" -X POST "$BASE$path" \
+  curl -s -o "$TMP/e2e-last.html" -w "%{http_code}" -X POST "$BASE$path" \
     --form-string "\$ACTION_ID_$id=1" "${args[@]}"
 }
 
@@ -38,7 +41,7 @@ upload() { # $1 = action name, $2 = path, $3 = local csv file, rest = form field
   if [ -z "$id" ]; then echo "NO-ID $name"; return 1; fi
   local args=()
   for f in "$@"; do args+=(--form-string "$f"); done
-  curl -s -o /tmp/opencode/e2e-last.html -w "%{http_code}" -X POST "$BASE$path" \
+  curl -s -o "$TMP/e2e-last.html" -w "%{http_code}" -X POST "$BASE$path" \
     --form-string "\$ACTION_ID_$id=1" -F "file=@$file;type=text/csv" "${args[@]}"
 }
 
@@ -130,7 +133,7 @@ check "createSite rejects duplicate code" "1" "$(q "SELECT COUNT(*) FROM sites W
 
 echo "--- CSV import (validate + commit) ---"
 # Two rows: one valid, one with an impossible recovery → 1 imported, 1 rejected.
-CSV=/tmp/opencode/e2e-import.csv
+CSV="$TMP/e2e-import.csv"
 printf 'site,date,ore_tonnes,waste_tonnes,concentrate_tonnes,head_grade_pct,recovery_pct,throughput_tpd\n' > "$CSV"
 printf 'MWE,2026-12-31,4444,5555,666,2.5,91.5,4444\n' >> "$CSV"
 printf 'MWE,2026-12-30,111,222,33,2.5,150,111\n' >> "$CSV"

@@ -127,3 +127,15 @@ Details — verification pass:
   placeholders instead of broken charts or `NaN`.
 * **Gaps found:** none — every `F-*` requirement in `docs/02-prd.md` maps to
   visible, working UI.
+
+Post-release follow-up — fresh-clone audit. Cloning the pushed repository into
+an empty directory (`git clone … && npm ci && npm run db:seed`) surfaced one
+real defect that the working tree had masked: `npm run typecheck` failed with
+`Cannot find name 'LayoutProps'`, because `LayoutProps`/`PageProps` are globals
+generated into `.next/types` and neither that directory nor `next-env.d.ts` is
+committed. `typecheck` now runs `next typegen` first (`next typegen && tsc
+--noEmit`), which is the documented remedy, and the audit was re-run from a
+clean clone: seed ✓, typecheck ✓, lint ✓, 42/42 unit tests ✓, build ✓ (14
+routes), all nine routes 200 with zero server errors, and **27/27** e2e checks
+against the cloned app on a different port. The e2e harness also gained
+`E2E_BASE` / `E2E_DB` / `E2E_TMP` overrides so it can target any instance.

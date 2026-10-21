@@ -29,13 +29,19 @@ No login, no external services, no network calls — the whole app runs against
 | `npm run dev` | dev server with HMR |
 | `npm run build` / `npm start` | production build / serve |
 | `npm test` | vitest unit suite (metrics, alerts, CSV pipeline) |
-| `npm run typecheck` | `tsc --noEmit` |
+| `npm run typecheck` | `next typegen && tsc --noEmit` (generates route types first, so it works on a fresh clone) |
 | `npm run lint` | eslint |
 | `npm run db:seed` | rebuild the deterministic demo dataset (wipes existing rows) |
 | `npm run db:reset` | empty every table, schema intact |
 | `npm run e2e:actions` | drive all 18 server actions over HTTP against `next start` and assert the resulting rows (27 assertions) |
 
 `DATABASE_PATH=/tmp/other.db npm run dev` points the app at a different SQLite file.
+
+The e2e harness can target another server or database without editing the script:
+
+```bash
+E2E_BASE=http://localhost:3459 E2E_DB=data/other.db npm run e2e:actions
+```
 
 ## Feature tour
 
