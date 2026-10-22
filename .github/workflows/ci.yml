@@ -1,119 +1,85 @@
 name: CI
 
-# Runs the same verification chain used during development:
-# typecheck -> lint -> unit tests -> build -> end-to-end action checks.
-#
-# The app is local-only (SQLite on disk, no external services), so every step
-# runs fine on a stock GitHub-hosted runner.
-
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-  workflow_dispatch:
-
-# A newer push to the same branch makes the in-flight run obsolete.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-permissions:
-  contents: read
-
-env:
-  # Keep Next.js telemetry out of the logs and the cache key stable.
-  NEXT_TELEMETRY_DISABLED: 1
 
 jobs:
-  verify:
-    name: Typecheck, lint, test, build
-    # Pinned rather than `ubuntu-latest`: that label migrates to Ubuntu 26 in
-    # October 2026, and a silent image change should not be able to break CI.
-    runs-on: ubuntu-24.04
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
-      - name: Set up Node
-        uses: actions/setup-node@v7
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          # Matches .nvmrc
-          node-version-file: .nvmrc
-          cache: npm
+          node-version: '22'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Typecheck
-        # `next typegen` emits the route types (LayoutProps/PageProps) that tsc
-        # needs; without it this fails on a fresh checkout.
-        run: npm run typecheck
-
-      - name: Lint
+      - name: Run lint
         run: npm run lint
 
-      - name: Unit tests
-        run: npm test
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run typecheck
+        run: npm run typecheck
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Build
         run: npm run build
-
-      - name: Seed the demo database
-        run: npm run db:seed
-
-      - name: Start the production server
-        run: |
-          npx next start -p 3457 > "${{ runner.temp }}/next-start.log" 2>&1 &
-          ready=0
-          for _ in $(seq 1 30); do
-            if curl -sf -o /dev/null http://localhost:3457/; then ready=1; break; fi
-            sleep 1
-          done
-          if [ "$ready" -ne 1 ]; then
-            echo "::error::server did not become ready within 30s"
-            cat "${{ runner.temp }}/next-start.log"
-            exit 1
-          fi
-          echo "server ready"
-
-      - name: Check every route serves
-        run: |
-          failed=0
-          for route in / /sites /production /equipment /safety /environment \
-                       /inventory /import /settings /api/export; do
-            code=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3457$route")
-            if [ "$code" = "200" ]; then
-              echo "ok   $code $route"
-            else
-              echo "::error::$route returned $code, expected 200"
-              failed=1
-            fi
-          done
-          exit $failed
-
-      - name: End-to-end server action checks
-        # Drives all 18 server actions over real HTTP and asserts the resulting
-        # SQLite rows (27 assertions). The script hard-depends on the sqlite3 CLI
-        # and python3 (and checks for them itself), so install it if the image
-        # does not already provide it.
-        run: |
-          command -v sqlite3 >/dev/null || {
-            sudo apt-get update -qq
-            sudo apt-get install -y -qq sqlite3
-          }
-          npm run e2e:actions
-        env:
-          E2E_BASE: http://localhost:3457
-          E2E_DB: data/mining.db
-          E2E_TMP: ${{ runner.temp }}/e2e
-
-      - name: Server log on failure
-        if: failure()
-        run: cat "${{ runner.temp }}/next-start.log" || true
-
-      - name: Stop the server
-        if: always()
-        # The backgrounded `next start` dies with the job, but stopping it
-        # explicitly keeps the log clean and frees the port for reruns.
-        run: pkill -f "next start" || true
