@@ -44,6 +44,10 @@ async function InventoryContent({ sp }: { sp: SearchParams }) {
       <PageHeader
         title="Stockpiles & Shipments"
         subtitle={`${rangeLabel(f)} · ${f.from} → ${f.to}`}
+        breadcrumbs={[
+          { label: 'Overview', href: '/' },
+          { label: 'Inventory', href: '/inventory' },
+        ]}
         actions={
           <>
             <FormDialog

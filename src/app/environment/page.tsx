@@ -43,6 +43,10 @@ async function EnvironmentContent({ sp }: { sp: SearchParams }) {
       <PageHeader
         title="Environment & Tailings"
         subtitle={`${rangeLabel(f)} · ${f.from} → ${f.to}`}
+        breadcrumbs={[
+          { label: 'Overview', href: '/' },
+          { label: 'Environment', href: '/environment' },
+        ]}
         actions={
           <FormDialog
             label="＋ Add reading"

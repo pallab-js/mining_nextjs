@@ -10,6 +10,7 @@ import { DataTable, type Column } from '@/components/ui/data-table'
 import { viewRows } from '@/lib/view-rows'
 import { EmptyState } from '@/components/ui/empty-state'
 import { StatusDot } from '@/components/ui/status-dot'
+import { DataFreshness } from '@/components/ui/data-freshness'
 import { BarTrend, Heatmap, PALETTE, TrendChart } from '@/components/charts'
 import { ActionForm } from '@/components/forms/action-form'
 import { FormDialog } from '@/components/forms/form-dialog'
@@ -27,6 +28,7 @@ import {
   getUnitUtilizationMatrix,
 } from '@/lib/queries/equipment'
 import { getSiteOptions } from '@/lib/queries/sites'
+import { getFreshness } from '@/lib/queries/meta'
 import { fmtCompact, fmtPct } from '@/lib/format'
 import type { SearchParams } from '@/lib/web'
 
@@ -39,13 +41,21 @@ export default function EquipmentPage({ searchParams }: { searchParams: SearchPa
 async function EquipmentContent({ sp }: { sp: SearchParams }) {
   await connection()
   const f = filterFromSearchParams(await sp)
-  const [equipment, sites] = await Promise.all([getEquipmentOptions(), getSiteOptions()])
+  const [equipment, sites, freshness] = await Promise.all([
+    getEquipmentOptions(),
+    getSiteOptions(),
+    getFreshness(),
+  ])
   const scopedSite = sites.find((s) => s.id === f.siteId)?.code
   return (
     <>
       <PageHeader
         title="Equipment & Fleet"
         subtitle={`${rangeLabel(f)} · ${f.from} → ${f.to}`}
+        breadcrumbs={[
+          { label: 'Overview', href: '/' },
+          { label: 'Equipment', href: '/equipment' },
+        ]}
         actions={
           <>
             <FormDialog
@@ -70,6 +80,7 @@ async function EquipmentContent({ sp }: { sp: SearchParams }) {
                 submitLabel="Save event"
               />
             </FormDialog>
+            <DataFreshness data={freshness} className="mt-2" />
           </>
         }
       />

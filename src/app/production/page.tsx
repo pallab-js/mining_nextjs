@@ -11,6 +11,7 @@ import { viewRows } from '@/lib/view-rows'
 import { EmptyState } from '@/components/ui/empty-state'
 import { GranToggle, type Gran } from '@/components/gran-toggle'
 import { Donut, PALETTE, TrendChart } from '@/components/charts'
+import { DataFreshness } from '@/components/ui/data-freshness'
 import { ActionForm } from '@/components/forms/action-form'
 import { FormDialog } from '@/components/forms/form-dialog'
 import { createProduction } from '@/lib/actions/production'
@@ -28,6 +29,7 @@ import {
   getProductionTotals,
 } from '@/lib/queries/production'
 import { getSiteOptions } from '@/lib/queries/sites'
+import { getFreshness } from '@/lib/queries/meta'
 import { fmtCompact, fmtNum, fmtPct } from '@/lib/format'
 import type { SearchParams } from '@/lib/web'
 
@@ -46,13 +48,20 @@ async function ProductionContent({ sp }: { sp: SearchParams }) {
   const params = await sp
   const f = filterFromSearchParams(params)
   const gran: Gran = granFrom(params) ?? 'day'
-  const sites = await getSiteOptions()
+  const [sites, freshness] = await Promise.all([
+    getSiteOptions(),
+    getFreshness(),
+  ])
   const scopedSite = sites.find((s) => s.id === f.siteId)?.code
   return (
     <>
       <PageHeader
         title="Production & Grades"
         subtitle={`${rangeLabel(f)} · ${f.from} → ${f.to}`}
+        breadcrumbs={[
+          { label: 'Overview', href: '/' },
+          { label: 'Production', href: '/production' },
+        ]}
         actions={
           <>
             <GranToggle current={gran} />
@@ -67,6 +76,7 @@ async function ProductionContent({ sp }: { sp: SearchParams }) {
                 submitLabel="Save record"
               />
             </FormDialog>
+            <DataFreshness data={freshness} className="mt-2" />
           </>
         }
       />

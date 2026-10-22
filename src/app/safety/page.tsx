@@ -11,6 +11,7 @@ import { DataTable, type Column } from '@/components/ui/data-table'
 import { viewRows } from '@/lib/view-rows'
 import { EmptyState } from '@/components/ui/empty-state'
 import { BarTrend, PALETTE } from '@/components/charts'
+import { DataFreshness } from '@/components/ui/data-freshness'
 import { ActionForm } from '@/components/forms/action-form'
 import { FormDialog } from '@/components/forms/form-dialog'
 import { OpenIncidentList } from '@/components/forms/open-incidents'
@@ -24,6 +25,7 @@ import {
   listIncidents,
 } from '@/lib/queries/safety'
 import { getSiteOptions } from '@/lib/queries/sites'
+import { getFreshness } from '@/lib/queries/meta'
 import { fmtDay, fmtInt } from '@/lib/format'
 import type { SearchParams } from '@/lib/web'
 
@@ -43,25 +45,35 @@ export default function SafetyPage({ searchParams }: { searchParams: SearchParam
 async function SafetyContent({ sp }: { sp: SearchParams }) {
   await connection()
   const f = filterFromSearchParams(await sp)
-  const sites = await getSiteOptions()
+  const [sites, freshness] = await Promise.all([
+    getSiteOptions(),
+    getFreshness(),
+  ])
   const scopedSite = sites.find((s) => s.id === f.siteId)?.code
   return (
     <>
       <PageHeader
         title="Safety (HSE)"
         subtitle={`${rangeLabel(f)} · ${f.from} → ${f.to}`}
+        breadcrumbs={[
+          { label: 'Overview', href: '/' },
+          { label: 'Safety', href: '/safety' },
+        ]}
         actions={
-          <FormDialog
-            label="＋ Log incident"
-            title="Log incident"
-            description="Record an injury, near miss, spill or event."
-          >
-            <ActionForm
-              action={createIncident}
-              fields={incidentFields(sites, scopedSite)}
-              submitLabel="Log incident"
-            />
-          </FormDialog>
+          <>
+            <FormDialog
+              label="＋ Log incident"
+              title="Log incident"
+              description="Record an injury, near miss, spill or event."
+            >
+              <ActionForm
+                action={createIncident}
+                fields={incidentFields(sites, scopedSite)}
+                submitLabel="Log incident"
+              />
+            </FormDialog>
+            <DataFreshness data={freshness} className="mt-2" />
+          </>
         }
       />
       <div className="space-y-4">
