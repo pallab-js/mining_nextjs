@@ -11,7 +11,7 @@ import { RESET_CONFIRM, RESEED_CONFIRM } from '@/lib/enums'
 import { toast } from '@/components/toast-host'
 
 const inputClass =
-  'w-full rounded-md border border-line bg-canvas px-2.5 py-1.5 font-mono text-[12px] text-ink outline-none focus:ring-1 focus:ring-signal/40 placeholder:text-ink-dim/50'
+  'w-full rounded-md border border-line bg-canvas px-3 py-2 font-mono text-[12px] text-ink outline-none focus:ring-1 focus:ring-signal/40 placeholder:text-ink-dim/50 min-h-[44px]'
 
 function ConfirmRow({
   word,
@@ -60,7 +60,7 @@ function ConfirmRow({
             onRun(fd)
             setTyped('')
           }}
-          className={`focus-ring inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[12px] disabled:opacity-40 ${
+          className={`focus-ring inline-flex items-center gap-1.5 rounded-md border px-4 py-2 text-[12px] disabled:opacity-40 min-h-[44px] ${
             danger
               ? 'border-bad/50 bg-bad/10 text-bad hover:bg-bad/20'
               : 'border-line bg-panel hover:border-ink-dim/50'

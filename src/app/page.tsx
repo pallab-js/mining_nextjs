@@ -147,7 +147,7 @@ async function OverviewHeatmap({ sp }: { sp: SP }) {
       {matrix.sites.length === 0 || matrix.dates.length === 0 ? (
         <p className="py-6 text-center text-[12px] text-ink-dim">No fleet events in range.</p>
       ) : (
-        <Heatmap rowLabels={matrix.sites} dates={matrix.dates} cells={matrix.cells} rowHrefs={rowHrefs} />
+        <Heatmap rowLabels={matrix.sites} dates={matrix.dates} cells={matrix.cells} rowHrefs={rowHrefs} responsive={true} />
       )}
     </Panel>
   )

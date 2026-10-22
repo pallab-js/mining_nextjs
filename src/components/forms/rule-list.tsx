@@ -7,6 +7,7 @@ import { deleteRule, toggleRule } from '@/lib/actions/alerts'
 import { Badge } from '@/components/ui/status-dot'
 import { toneFor } from '@/lib/tones'
 import { METRICS } from '@/lib/metrics'
+import { ConfirmDialog } from './confirm-dialog'
 
 export interface RuleItem {
   id: number
@@ -28,6 +29,7 @@ export function RuleList({ rules }: { rules: RuleItem[] }) {
   const [pendingId, setPendingId] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [, startTransition] = useTransition()
+  const [deleteDialog, setDeleteDialog] = useState<{ id: number; name: string } | null>(null)
 
   const run = (id: number, fn: (fd: FormData) => Promise<{ ok: boolean; message: string }>) => {
     const fd = new FormData()
@@ -41,9 +43,13 @@ export function RuleList({ rules }: { rules: RuleItem[] }) {
     })
   }
 
-  const remove = (id: number, name: string) => {
-    if (!window.confirm(`Delete alert rule "${name}"?`)) return
-    run(id, deleteRule)
+  const requestDelete = (id: number, name: string) => {
+    setDeleteDialog({ id, name })
+  }
+
+  const confirmDelete = () => {
+    if (deleteDialog) run(deleteDialog.id, deleteRule)
+    setDeleteDialog(null)
   }
 
   if (rules.length === 0) {
@@ -83,7 +89,7 @@ export function RuleList({ rules }: { rules: RuleItem[] }) {
               </button>
               <button
                 type="button"
-                onClick={() => remove(r.id, r.name)}
+                onClick={() => requestDelete(r.id, r.name)}
                 disabled={pendingId === r.id}
                 className="focus-ring rounded-md border border-bad/40 bg-bad/10 px-3 py-1.5 text-[11px] text-bad hover:bg-bad/20 disabled:opacity-50 min-h-[44px]"
               >
@@ -94,6 +100,15 @@ export function RuleList({ rules }: { rules: RuleItem[] }) {
         ))}
       </ul>
       {error && <p className="border-t border-line px-4 py-2 text-[11px] text-bad">{error}</p>}
+      <ConfirmDialog
+        open={deleteDialog !== null}
+        onClose={() => setDeleteDialog(null)}
+        onConfirm={confirmDelete}
+        title="Delete rule"
+        description={deleteDialog ? `Delete "${deleteDialog.name}"? This cannot be undone.` : 'Are you sure?'}
+        confirmLabel="Delete"
+        confirmTone="bad"
+      />
     </div>
   )
 }

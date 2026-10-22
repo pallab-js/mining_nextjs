@@ -17,7 +17,7 @@ import {
 import { toast } from '@/components/toast-host'
 
 const inputClass =
-  'w-full rounded-md border border-line bg-canvas px-2.5 py-1.5 text-[12.5px] text-ink outline-none focus:ring-1 focus:ring-signal/40 placeholder:text-ink-dim/50'
+  'w-full rounded-md border border-line bg-canvas px-3 py-2 text-[12.5px] text-ink outline-none focus:ring-1 focus:ring-signal/40 placeholder:text-ink-dim/50 min-h-[44px]'
 
 const ENTITY_HINTS: Record<ImportEntity, string> = {
   production: 'Daily ore, waste, concentrate and grades — upserts on site + date',
@@ -113,7 +113,13 @@ export function ImportWizard() {
                 setFilename('')
                 if (fileRef.current) fileRef.current.value = ''
               }}
-              className={`focus-ring rounded-md border px-3 py-2 text-left transition-colors ${
+              onKeyDown={(ev) => {
+                if (ev.key === 'Enter' || ev.key === ' ') {
+                  ev.preventDefault()
+                  ev.currentTarget.click()
+                }
+              }}
+              className={`focus-ring rounded-md border px-3 py-2 text-left transition-colors min-h-[44px] ${
                 entity === e
                   ? 'border-signal/60 bg-signal/10'
                   : 'border-line bg-panel hover:border-ink-dim/50'

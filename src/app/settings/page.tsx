@@ -106,9 +106,9 @@ function ExportPanel() {
         </div>
         <a
           href="/api/export"
-          className="focus-ring inline-flex items-center gap-1.5 rounded-md border border-line bg-panel px-3 py-1.5 text-[12px] hover:border-ink-dim/50"
+          className="focus-ring inline-flex items-center gap-1.5 rounded-md border border-line bg-panel px-4 py-2 text-[12px] hover:border-ink-dim/50 min-h-[44px]"
         >
-          <Download className="size-3.5" />
+          <Download className="size-4" />
           Download JSON
         </a>
       </div>

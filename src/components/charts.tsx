@@ -24,6 +24,7 @@ import {
   YAxis,
 } from 'recharts'
 import { fmtWith, type Fmt } from '@/lib/fmt-kinds'
+import { useChartHeight } from '@/lib/responsive'
 
 export const PALETTE = {
   signal: '#f5a524',
@@ -87,9 +88,7 @@ export interface SeriesDef {
   /** value format for this series in tooltips */
   format?: Fmt
 }
-
-import { useChartHeight } from '@/lib/responsive'
-
+ 
 export function TrendChart({
   data,
   xKey,
@@ -335,6 +334,7 @@ export function Heatmap({
   /** optional link target per row label (site code / unit code pages) */
   rowHrefs,
   height = 30,
+  responsive = false,
 }: {
   rowLabels: string[]
   dates: string[]
@@ -342,7 +342,11 @@ export function Heatmap({
   cells: (number | null)[][]
   rowHrefs?: Record<string, string>
   height?: number
+  /** use responsive height based on viewport (default: false for heatmap) */
+  responsive?: boolean
 }) {
+  const chartHeight = useChartHeight(height)
+  const responsiveHeight = responsive ? chartHeight : height
   return (
     <div className="scroll-slim overflow-x-auto">
       <div className="min-w-max">
@@ -353,7 +357,7 @@ export function Heatmap({
               <div
                 key={d}
                 className="num text-[9px] text-ink-dim"
-                style={{ width: height }}
+                style={{ width: responsiveHeight }}
                 title={d}
               >
                 {Number(d.slice(8)) % 2 === 1 ? d.slice(8) : ''}
@@ -380,8 +384,8 @@ export function Heatmap({
                   <div
                     key={c}
                     style={{
-                      width: height,
-                      height: height - 6,
+                      width: responsiveHeight,
+                      height: responsiveHeight - 6,
                       background:
                         v === null
                           ? 'var(--color-panel-2)'
