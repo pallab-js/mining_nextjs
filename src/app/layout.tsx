@@ -5,6 +5,7 @@ import "./globals.css";
 import { NavRail } from "@/components/shell/nav-rail";
 import { TopBarBoundary } from "@/components/shell/top-bar";
 import { ToastHost } from "@/components/toast-host";
+import { KeyboardShortcuts } from "@/components/ui/keyboard-shortcuts";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </main>
         </div>
         <ToastHost />
+        <KeyboardShortcuts />
       </body>
     </html>
   );
