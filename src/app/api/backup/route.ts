@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server'
 import { readFile } from 'node:fs/promises'
 import { dbFile } from '@/lib/db'
 
-export const dynamic = 'force-dynamic'
-
 export async function GET() {
   const file = dbFile()
   const buf = await readFile(file)

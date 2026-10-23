@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getFreshness } from '@/lib/queries/meta'
 
-export const dynamic = 'force-dynamic'
-
 export async function GET() {
   try {
     const f = await getFreshness()
