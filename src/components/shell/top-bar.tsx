@@ -7,7 +7,7 @@ import { Suspense } from 'react'
 import { SiteSelect, RangeSelect } from './filters'
 import { AlertBell } from './alert-bell'
 import { FreshnessBadge } from './freshness-badge'
-import { MobileNavDrawer, MobileMenuButton } from './mobile-nav-drawer'
+import { MobileMenuButton } from './mobile-nav-drawer'
 import { getSiteOptions } from '@/lib/queries/sites'
 
 export async function TopBar() {
@@ -35,7 +35,6 @@ export async function TopBar() {
           <AlertBell />
         </Suspense>
       </header>
-      <MobileNavDrawer />
     </>
   )
 }
