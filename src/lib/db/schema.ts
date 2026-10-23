@@ -185,6 +185,14 @@ export const importBatches = sqliteTable('import_batches', {
   createdAt: text('created_at').notNull(),
 })
 
+export const auditLog = sqliteTable('audit_log', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  action: text('action').notNull(),
+  detail: text('detail'),
+  createdAt: text('created_at').notNull(),
+})
+
+
 /* Inferred types ---------------------------------------------------------- */
 export type Site = typeof sites.$inferSelect
 export type NewSite = typeof sites.$inferInsert

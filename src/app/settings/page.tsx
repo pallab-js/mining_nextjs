@@ -14,7 +14,7 @@ import { DataAdmin } from '@/components/forms/data-admin'
 import { createRule } from '@/lib/actions/alerts'
 import { alertRuleFields } from '@/lib/field-specs'
 import { getAlertRules } from '@/lib/queries/alerts'
-import { getFreshness } from '@/lib/queries/meta'
+import { getFreshness, getAuditLog } from '@/lib/queries/meta'
 import { getSiteOptions } from '@/lib/queries/sites'
 import { fmtInt } from '@/lib/format'
 
@@ -111,13 +111,20 @@ function ExportPanel() {
           <Download className="size-4" />
           Download JSON
         </a>
+        <a
+          href="/api/backup"
+          className="focus-ring inline-flex items-center gap-1.5 rounded-md border border-line bg-panel px-4 py-2 text-[12px] hover:border-ink-dim/50 min-h-[44px]"
+        >
+          <Download className="size-4" />
+          Download DB
+        </a>
       </div>
     </Panel>
   )
 }
 
 async function DiagnosticsSection() {
-  const [fresh, rules] = await Promise.all([getFreshness(), getAlertRules()])
+  const [fresh, rules, audit] = await Promise.all([getFreshness(), getAlertRules(), getAuditLog()])
   const last = fresh.lastImport
 
   return (
@@ -169,6 +176,20 @@ async function DiagnosticsSection() {
             CSV import & history →
           </Link>
         </div>
+        {audit.length > 0 && (
+          <div className="rounded-md border border-line bg-panel-2/30 px-3 py-2">
+            <p className="mb-1 text-[10.5px] tracking-wide text-ink-dim uppercase">Recent audit</p>
+            <ul className="space-y-1 text-[11.5px]">
+              {audit.map((a) => (
+                <li key={a.id} className="flex justify-between gap-2">
+                  <span className="font-mono">{a.action}</span>
+                  <span className="text-ink-dim">{a.detail ?? ''}</span>
+                  <span className="num text-ink-dim">{a.createdAt}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </Panel>
   )

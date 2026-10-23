@@ -130,4 +130,11 @@ export const DDL: string[] = [
      errors_json TEXT NOT NULL,
      created_at  TEXT NOT NULL
    )`,
+  `CREATE TABLE IF NOT EXISTS audit_log (
+     id         INTEGER PRIMARY KEY AUTOINCREMENT,
+     action     TEXT NOT NULL,
+     detail     TEXT,
+     created_at TEXT NOT NULL
+   )`,
+  `CREATE INDEX IF NOT EXISTS audit_log_created_idx ON audit_log(created_at)`,
 ]

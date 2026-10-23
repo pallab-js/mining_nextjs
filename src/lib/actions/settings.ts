@@ -10,6 +10,7 @@ import { runReset, runSeed } from '../db/seed'
 import { RESET_CONFIRM, RESEED_CONFIRM } from '../enums'
 import { ok, fail, type ActionResult } from './result'
 import { attempt, connection } from './helpers'
+import { db, tables } from '../db'
 
 function confirmed(fd: FormData, word: string): boolean {
   const raw = fd.get('confirm')
@@ -26,6 +27,7 @@ export async function reseedDatabase(fd: FormData): Promise<ActionResult> {
     }
     await connection()
     const stats = runSeed()
+    db.insert(tables.auditLog).values({ action: 'reseed', detail: `${stats.sites} sites`, createdAt: new Date().toISOString() }).run()
     refresh()
     return ok(
       `Demo dataset restored — ${stats.sites} sites, ${stats.equipment} units, ${stats.productionDays} production days, ${stats.incidents} incidents.`,
@@ -43,6 +45,7 @@ export async function resetDatabase(fd: FormData): Promise<ActionResult> {
     }
     await connection()
     runReset()
+    db.insert(tables.auditLog).values({ action: 'reset', detail: 'all tables emptied', createdAt: new Date().toISOString() }).run()
     refresh()
     return ok('Database cleared — every table is empty. Reseed to restore the demo dataset.')
   })

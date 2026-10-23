@@ -86,6 +86,29 @@ export async function listImportBatches(limit = 20): Promise<ImportBatchRow[]> {
   }))
 }
 
+export interface AuditLogRow {
+  id: number
+  action: string
+  detail: string | null
+  createdAt: string
+}
+
+export async function getAuditLog(limit = 10): Promise<AuditLogRow[]> {
+  await connection()
+  const rows = all<{
+    id: number
+    action: string
+    detail: string | null
+    created_at: string
+  }>(`SELECT id, action, detail, created_at FROM audit_log ORDER BY id DESC LIMIT ?`, [limit])
+  return rows.map((r) => ({
+    id: r.id,
+    action: r.action,
+    detail: r.detail,
+    createdAt: r.created_at,
+  }))
+}
+
 function safeParse(json: string): unknown {
   try {
     return JSON.parse(json)

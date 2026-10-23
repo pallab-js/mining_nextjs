@@ -11,6 +11,7 @@
     "test": "vitest run",
     "db:seed": "tsx scripts/seed.ts",
     "db:reset": "tsx scripts/reset.ts",
+    "e2e": "playwright test",
     "e2e:actions": "bash scripts/e2e-actions.sh"
   },
   "dependencies": {
@@ -27,6 +28,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/turbopack": "^4",
     "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^22.20.5",
