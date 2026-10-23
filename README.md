@@ -34,6 +34,7 @@ No login, no external services, no network calls — everything runs against `da
 | `npm run lint` | ESLint |
 | `npm run db:seed` | Rebuild demo dataset (wipes existing rows) |
 | `npm run db:reset` | Empty all tables, keep schema |
+| `npm run e2e` | Playwright smoke tests |
 | `npm run e2e:actions` | Drive all 18 server actions over HTTP (27 assertions) |
 
 Override DB: `DATABASE_PATH=/tmp/other.db npm run dev`
@@ -55,6 +56,8 @@ Override DB: `DATABASE_PATH=/tmp/other.db npm run dev`
 | `/import` | 3-step CSV wizard (entity → file → validate → commit) |
 | `/settings` | Alert rules, reseed/reset, JSON export, diagnostics |
 | `/api/export` | Full JSON dump of all tables |
+| `/api/backup` | Download SQLite database file |
+| `/api/health` | DB status and data freshness |
 
 All pages respect global **site** and **range** filters in the URL (`?site=12&range=90d`) — shareable and bookmarkable.
 
